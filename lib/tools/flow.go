@@ -1,0 +1,6 @@
+package tools
+
+//
+func DecryptBehinderPacket() {
+
+}
