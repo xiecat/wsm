@@ -16,7 +16,7 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 	if script == shell.JavaScript {
 		if cryption == JAVA_AES_BASE64 {
 			//key =
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForJava(content, []byte(key)))))
+			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForJava(content, key))))
 		} else if cryption == JAVA_AES_RAW {
 			result = encryptForJava(content, key)
 		} else {
@@ -24,7 +24,7 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 		}
 	} else if script == shell.CsharpScript {
 		if cryption == CSHARP_AES_BASE64 {
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForCSharp(content, []byte(key)))))
+			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForCSharp(content, key))))
 		} else if cryption == CSHARP_AES_RAW {
 			result = encryptForCSharp(content, key)
 		} else {
@@ -32,9 +32,17 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 		}
 	} else if script == shell.PhpScript {
 		if cryption == PHP_XOR_BASE64 {
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, []byte(key)))))
+			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key))))
 		} else if cryption == PHP_XOR_RAW {
-			result = encrypt.Xor(content, []byte(key))
+			result = encrypt.Xor(content, key)
+		} else {
+			log.Println("encryption mode err")
+		}
+	} else if script == shell.AspScript {
+		if cryption == ASP_XOR_BASE64 {
+			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key))))
+		} else if cryption == ASP_XOR_RAW {
+			result = encrypt.Xor(content, key)
 		} else {
 			log.Println("encryption mode err")
 		}
@@ -82,6 +90,19 @@ func Decrypto(content, key []byte, pass string, cryption CrypticType, script she
 				result = encrypt.Xor(result, key)
 			}
 		} else if cryption == PHP_XOR_RAW {
+			result = encrypt.Xor(content, key)
+		} else {
+			log.Println("decryption mode err")
+		}
+	} else if script == shell.AspScript {
+		if cryption == ASP_XOR_BASE64 {
+			flag := utils.MD5(pass + string(key))
+			cont := regexp.MustCompile(`(?s)(?i)` + flag[0:16] + `(.*?)` + flag[16:]).FindStringSubmatch(string(content))
+			if len(cont) == 2 {
+				result, _ = base64.StdEncoding.DecodeString(cont[1])
+				result = encrypt.Xor(result, key)
+			}
+		} else if cryption == ASP_XOR_RAW {
 			result = encrypt.Xor(content, key)
 		} else {
 			log.Println("decryption mode err")

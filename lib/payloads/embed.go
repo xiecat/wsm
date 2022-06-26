@@ -33,3 +33,9 @@ var GodDllFiles []byte
 
 //go:embed godzilla/csharp/plugins/*.dll
 var GodDllPluginsFiles embed.FS
+
+//go:embed godzilla/asp/payload.asp
+var GodAspFiles []byte
+
+//go:embed godzilla/asp/plugins/*.asp
+var GodAspPluginsFiles embed.FS
