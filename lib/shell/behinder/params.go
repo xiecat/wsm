@@ -23,10 +23,6 @@ func (p *PingParams) Check() {
 	}
 }
 
-func (p *PingParams) Get() *PingParams {
-	return &PingParams{}
-}
-
 type BasicInfoParams struct {
 	OnlyJavaParams
 	WhatEver string `json:"whatever"`
@@ -42,6 +38,10 @@ type ExecParams struct {
 	OnlyJavaParams
 	Cmd  string `json:"cmd"`
 	Path string `json:"path"`
+}
+
+func (e *ExecParams) Check() {
+
 }
 
 type FileOptParams struct {

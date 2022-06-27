@@ -3,6 +3,7 @@ package godzilla
 import (
 	"bytes"
 	"github.com/Go0p/wsm/lib/dynamic"
+	"strings"
 )
 
 type Parameter struct {
@@ -37,4 +38,73 @@ func (p *Parameter) Serialize() []byte {
 		outputStream.Write(value.([]byte))
 	}
 	return outputStream.Bytes()
+}
+
+func SplitArgs(input string, maxParts int, removeAllEscapeSequences bool) []string {
+	r := []rune(strings.Trim(input, " "))
+	var i, parts, nextFragmentStart int
+	var inBounds bool
+	var fragments []string
+	for i < len(r) {
+		c := r[i]
+		if c == '\\' {
+			if removeAllEscapeSequences || (i+1 < len(r) && isEscapeable(r[i+1])) {
+				r = deleteIndex(r, i)
+			}
+		} else if c == '"' && checkBounds(i, nextFragmentStart, r, inBounds) {
+			inBounds = !inBounds
+			r = deleteIndex(r, i)
+			i--
+		} else if !inBounds && isSpace(c) {
+			fragments = addFragment(fragments, r, nextFragmentStart, i)
+			nextFragmentStart = i + 1
+			parts++
+			if parts+1 >= maxParts {
+				break
+			}
+		}
+		i++
+	}
+	if nextFragmentStart < len(r) {
+		fragments = addFragment(fragments, r, nextFragmentStart, -1)
+	}
+	return fragments
+}
+
+func deleteIndex(r []rune, i int) []rune {
+	return append(r[:i], r[i+1:]...)
+}
+
+func addFragment(fragments []string, r []rune, start, end int) []string {
+	if end <= start && end >= 0 {
+		return []string{}
+	}
+	if end < 0 {
+		end = len(r)
+	}
+	fragment := string(r[start:end])
+	return append(fragments, fragment)
+}
+
+func checkBounds(i, nextFragmentStart int, r []rune, inBounds bool) bool {
+	if inBounds {
+		return i+1 == len(r) || isSpace(r[i+1])
+	} else {
+		return i == nextFragmentStart
+	}
+}
+
+func isSpace(c rune) bool {
+	return c == ' ' || c == '\t'
+}
+
+func isEscapeable(c rune) bool {
+	switch c {
+	case ' ':
+		fallthrough
+	case '"':
+		fallthrough
+	default:
+		return false
+	}
 }

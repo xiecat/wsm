@@ -85,41 +85,7 @@ func BytesToInt(b []byte) int {
 
 // RandomClassName 随机类名
 func RandomClassName() string {
-	domainAs := []string{"com", "net", "org", "sun"}
-	rand.Seed(time.Now().UnixNano())
-	domainB := strings.ToLower(randomAlpha(rand.Intn(5) + 3))
-	domainC := strings.ToLower(randomAlpha(rand.Intn(5) + 3))
-	domainD := strings.ToLower(randomAlpha(rand.Intn(5) + 3))
-	className := randomAlpha(rand.Intn(7) + 4)
-	className = strings.ToUpper(className[0:1]) + strings.ToLower(className[1:])
-	domainAIndex := rand.Intn(4)
-	domainA := domainAs[domainAIndex]
-	randomSegments := rand.Intn(3) + 3
-	var randomName string
-	switch randomSegments {
-	case 3:
-		randomName = domainA + "/" + domainB + "/" + className
-		break
-	case 4:
-		randomName = domainA + "/" + domainB + "/" + domainC + "/" + className
-		break
-	case 5:
-		randomName = domainA + "/" + domainB + "/" + domainC + "/" + domainD + "/" + className
-		break
-	default:
-		randomName = domainA + "/" + domainB + "/" + domainC + "/" + domainD + "/" + className
-	}
-
-	return randomName
-}
-
-func randomAlpha(size int) string {
-	alpha := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	var buffer bytes.Buffer
-
-	//rand.Seed(time.Now().UnixNano())
-	for i := 0; i < size; i++ {
-		buffer.WriteByte(alpha[rand.Intn(len(alpha))])
-	}
-	return buffer.String()
+	rand.Seed(time.Now().Unix())
+	className := CLASS_NAMES[rand.Intn(len(CLASS_NAMES))]
+	return strings.ReplaceAll(className, ".", "/")
 }

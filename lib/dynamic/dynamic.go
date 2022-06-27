@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 )
@@ -45,13 +46,24 @@ func ReplaceClassName(classContent []byte, old, new string) []byte {
 			[]byte(new)))
 	classContent = bytes.ReplaceAll(classContent,
 		MergeBytes([]byte{(byte)(len(old))}, []byte(old)),
-		MergeBytes([]byte{(byte)(len(new))}, []byte(new)))
+		MergeBytes([]byte{(byte)(len(new))}, []byte(new)),
+	)
+	err := ioutil.WriteFile("E:\\JAVATools\\Behinder_v3.0_Beta_6_win\\PPPP.class", classContent, 0644)
+	if err != nil {
+		panic(err)
+	}
 	return classContent
 }
 
 // ReplaceSourceFile 尝试替换一下 SourceFile 为随机
 func ReplaceSourceFile(classContent []byte, old, new string) []byte {
-	classContent = replaceClassString(classContent, old+".java", new+".java")
+	if !strings.HasSuffix(old, ".java") {
+		old = old + ".java"
+	}
+	if !strings.HasSuffix(new, ".java") {
+		old = old + ".java"
+	}
+	classContent = replaceClassString(classContent, old, new)
 	return classContent
 }
 

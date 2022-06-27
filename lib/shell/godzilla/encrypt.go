@@ -97,7 +97,8 @@ func Decrypto(content, key []byte, pass string, cryption CrypticType, script she
 	} else if script == shell.AspScript {
 		if cryption == ASP_XOR_BASE64 {
 			flag := utils.MD5(pass + string(key))
-			cont := regexp.MustCompile(`(?s)(?i)` + flag[0:16] + `(.*?)` + flag[16:]).FindStringSubmatch(string(content))
+			// ASP_XOR_BASE64 取的是前 6 后 6
+			cont := regexp.MustCompile(`(?s)(?i)` + flag[0:6] + `(.*?)` + flag[20:26]).FindStringSubmatch(string(content))
 			if len(cont) == 2 {
 				result, _ = base64.StdEncoding.DecodeString(cont[1])
 				result = encrypt.Xor(result, key)
@@ -115,7 +116,7 @@ func Decrypto(content, key []byte, pass string, cryption CrypticType, script she
 }
 
 func encryptForCSharp(content, key []byte) []byte {
-	encrypted, err := encrypt.AESCBCEncrypt(key, content, key)
+	encrypted, err := encrypt.AESCBCEncrypt(content, key, key)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -124,7 +125,7 @@ func encryptForCSharp(content, key []byte) []byte {
 }
 
 func decryptForCSharp(content []byte, key []byte) []byte {
-	decrypted, _ := encrypt.AESCBCDecrypt(key, content, key)
+	decrypted, _ := encrypt.AESCBCDecrypt(content, key, key)
 	return decrypted
 }
 

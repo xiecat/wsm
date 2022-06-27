@@ -9,7 +9,6 @@ import (
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/behinder"
 	"github.com/Go0p/wsm/lib/utils"
-	"log"
 )
 
 type BehinderInfo struct {
@@ -43,7 +42,6 @@ func (b *BehinderInfo) Ping(p shell.IParams) bool {
 		return false
 	}
 	b.processParams(params)
-	log.Printf("%#+v\n", params)
 	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
 	resultObj, ok := httpx.RequestAndParse(b.Url, b.Proxy, b.Headers, data, b.beginIndex, b.endIndex)
 	if !ok {

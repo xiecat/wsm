@@ -23,17 +23,17 @@ func AESCBCEncrypt(src, key, iv []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-func AESCBCDecrypt(crypt []byte, key, iv []byte) ([]byte, error) {
+func AESCBCDecrypt(src []byte, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
-	if len(crypt) == 0 {
+	if len(src) == 0 {
 		fmt.Println("plain content empty")
 	}
 	cbc := cipher.NewCBCDecrypter(block, iv)
-	decrypted := make([]byte, len(crypt))
-	cbc.CryptBlocks(decrypted, crypt)
+	decrypted := make([]byte, len(src))
+	cbc.CryptBlocks(decrypted, src)
 
 	return pKCS5Trimming(decrypted), nil
 }
