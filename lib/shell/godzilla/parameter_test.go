@@ -17,13 +17,22 @@ func TestSplitArgs(t *testing.T) {
 		want []string
 	}{
 		{
-			name: "base 测试",
+			name: "whoami test",
 			args: args{
 				input:                    `cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami"`,
 				maxParts:                 100000,
 				removeAllEscapeSequences: false,
 			},
 			want: []string{"cmd", "/c", `cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami`},
+		},
+		{
+			name: "netstat -an 测试",
+			args: args{
+				input:                    `cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&netstat -an"`,
+				maxParts:                 100000,
+				removeAllEscapeSequences: false,
+			},
+			want: []string{"cmd", "/c", `cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&netstat -an`},
 		},
 	}
 	for _, tt := range tests {

@@ -71,6 +71,7 @@ func SplitArgs(input string, maxParts int, removeAllEscapeSequences bool) []stri
 	return fragments
 }
 
+// 删除指定下标的切片
 func deleteIndex(r []rune, i int) []rune {
 	return append(r[:i], r[i+1:]...)
 }

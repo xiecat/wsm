@@ -52,7 +52,6 @@ func RequestAndParse(urlPath, proxy string, header map[string]string, data strin
 func sendPostRequestBinary(urlPath, proxyUrl string, headerMap map[string]string, data string) *Result {
 	result := new(Result)
 	request, err := http.NewRequest(http.MethodPost, urlPath, strings.NewReader(data))
-	//request.Header.Set("Cookie", "JSESSIONID=C9E1460ACF024D2240E2C748DB54FA18;")
 	for k, v := range headerMap {
 		request.Header.Set(k, v)
 	}

