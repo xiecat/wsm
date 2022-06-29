@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"strings"
 )
@@ -34,7 +33,7 @@ func ReplaceClassStrVar(bs64class []byte, oldVar, newVar string) ([]byte, error)
 		return retByte, nil
 	}
 	log.Println("Class 字节码变量替换失败")
-	return nil, errors.New("")
+	return nil, errors.New("class 字节码变量替换失败")
 }
 
 // ReplaceClassName 动态替换类名
@@ -48,10 +47,10 @@ func ReplaceClassName(classContent []byte, old, new string) []byte {
 		MergeBytes([]byte{(byte)(len(old))}, []byte(old)),
 		MergeBytes([]byte{(byte)(len(new))}, []byte(new)),
 	)
-	err := ioutil.WriteFile("E:\\JAVATools\\Behinder_v3.0_Beta_6_win\\PPPP.class", classContent, 0644)
-	if err != nil {
-		panic(err)
-	}
+	//err := ioutil.WriteFile("E:\\JAVATools\\Behinder_v3.0_Beta_6_win\\PPPP.class", classContent, 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
 	return classContent
 }
 

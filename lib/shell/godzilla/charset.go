@@ -1,13 +1,8 @@
 package godzilla
 
 import (
-	"bytes"
-	"fmt"
-	"github.com/qiniu/iconv"
-	"github.com/saintfish/chardet"
-	"io/ioutil"
+	"github.com/yuin/charsetutil"
 	"log"
-	"strings"
 )
 
 const (
@@ -36,56 +31,33 @@ func (e *EncodingCharset) SetCharset(c string) {
 	e.charset = c
 }
 
-func (e *EncodingCharset) tryChardet(data []byte) (string, error) {
-	det := chardet.NewTextDetector()
-	charsetMap, err := det.DetectBest(data)
-	fmt.Println(charsetMap)
-	if err != nil {
-		return "", err
+// 猜的太不准了，中文加英文必猜错
+func (e *EncodingCharset) chardet(data []byte) error {
+	if e.charset == Chardet {
+		guess, err := charsetutil.GuessBytes(data)
+		if err != nil {
+			return err
+		}
+		e.charset = guess.Charset()
 	}
-	return charsetMap.Charset, nil
+	return nil
 }
 
 func (e *EncodingCharset) CharsetEncode(input string) ([]byte, error) {
-	// convert gbk to utf8
-	cd, err := iconv.Open("gbk", "utf-8")
-	if err != nil {
-		fmt.Println("iconv.Open failed!")
-		return nil, err
-	}
-	defer cd.Close()
-	i := strings.NewReader(input)
-	bufSize := 0 // default if zero
-	r := iconv.NewReader(cd, i, bufSize)
-
-	buf, err := ioutil.ReadAll(r)
+	b, err := charsetutil.EncodeString(input, "gbk")
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return buf, nil
+	return b, nil
 }
 
 func (e *EncodingCharset) CharsetDecode(input []byte) (string, error) {
-	if e.charset == Chardet {
-		e.charset, _ = e.tryChardet(input)
-		log.Println(e.charset)
-	}
-	// convert gbk to utf8
-	cd, err := iconv.Open("utf-8", e.charset)
-	if err != nil {
-		fmt.Println("iconv.Open failed!")
-		return "", err
-	}
-	defer cd.Close()
-	i := bytes.NewReader(input)
-	bufSize := 0 // default if zero
-	r := iconv.NewReader(cd, i, bufSize)
-
-	buf, err := ioutil.ReadAll(r)
+	e.chardet(input)
+	b, err := charsetutil.DecodeBytes(input, "gbk")
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
-	return string(buf), nil
+	return b, nil
 }
