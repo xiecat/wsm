@@ -1,8 +1,11 @@
 package godzilla
 
+import "time"
+
 type CrypticType string
 
 const (
+	TimeOut                       = time.Second * 25
 	JAVA_AES_BASE64   CrypticType = "JAVA_AES_BASE64"
 	JAVA_AES_RAW      CrypticType = "JAVA_AES_RAW"
 	CSHARP_AES_BASE64 CrypticType = "CSHARP_AES_BASE64"

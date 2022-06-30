@@ -2,6 +2,7 @@ package godzilla
 
 import (
 	"fmt"
+	"github.com/gogs/chardet"
 	"github.com/yuin/charsetutil"
 	"testing"
 )
@@ -9,16 +10,12 @@ import (
 func Test_charsetEncode(t *testing.T) {
 	data := "你好"
 	e := charsetutil.MustEncodeString(data, "gbk")
-	cs, err := charsetutil.GuessBytes(e)
+	det := chardet.NewTextDetector()
+	cs, err := det.DetectAll(e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf(
-		"Detectected character set : %v\n"+
-			"language : %v\n"+
-			"with confidence %v\n",
-		cs.Charset(), cs.Language(), cs.Confidence(),
-	)
+	fmt.Printf("%v\n", cs)
 	d := charsetutil.MustDecodeBytes(e, "gbk")
 	fmt.Println(d)
 }

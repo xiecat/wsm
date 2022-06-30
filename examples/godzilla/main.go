@@ -20,13 +20,14 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	info := &wsm.GodzillaInfo{
-		BaseShell: shell.BaseShell{
+		BaseShell: wsm.BaseShell{
 			Url:      JspShellUrl,
 			Password: "pass",
 			Script:   shell.JavaScript,
 			Proxy:    "http://127.0.0.1:9999",
 			// base64 的加密模式必须加上这个 header 头
-			Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
+			//Headers: map[string]string{"User-Agent": "xxxxxxxxxxxxxxxxxxxxx"},
+			//Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_BASE64,

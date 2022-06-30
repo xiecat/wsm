@@ -12,7 +12,7 @@ import (
 )
 
 type BehinderInfo struct {
-	shell.BaseShell
+	BaseShell
 	secretKey   []byte
 	encryptMode int
 	// response body 中的起始位
@@ -23,6 +23,10 @@ type BehinderInfo struct {
 
 func NewBehinder(b BehinderInfo) *BehinderInfo {
 	b.secretKey = utils.SecretKey(b.Password)
+	if b.Headers == nil {
+		b.Headers = make(map[string]string, 2)
+	}
+	b.Client = httpx.NewClient(b.Proxy, b.Headers, b.Script, "")
 	return &b
 }
 
@@ -43,7 +47,7 @@ func (b *BehinderInfo) Ping(p shell.IParams) bool {
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
-	resultObj, ok := httpx.RequestAndParse(b.Url, b.Proxy, b.Headers, data, b.beginIndex, b.endIndex)
+	resultObj, ok := b.Client.DoRequest(b.Url, data, b.beginIndex, b.endIndex)
 	if !ok {
 		return false
 	}

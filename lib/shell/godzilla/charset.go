@@ -1,6 +1,8 @@
 package godzilla
 
 import (
+	"fmt"
+	"github.com/gogs/chardet"
 	"github.com/yuin/charsetutil"
 	"log"
 )
@@ -31,14 +33,17 @@ func (e *EncodingCharset) SetCharset(c string) {
 	e.charset = c
 }
 
-// 猜的太不准了，中文加英文必猜错
+// 猜得太不准了，中文加英文必猜错
 func (e *EncodingCharset) chardet(data []byte) error {
 	if e.charset == Chardet {
-		guess, err := charsetutil.GuessBytes(data)
+		det := chardet.NewTextDetector()
+		guess, err := det.DetectAll(data)
+
 		if err != nil {
 			return err
 		}
-		e.charset = guess.Charset()
+		fmt.Println(guess)
+		e.charset = guess[0].Charset
 	}
 	return nil
 }

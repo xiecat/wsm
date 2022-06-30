@@ -1,4 +1,9 @@
-package shell
+package wsm
+
+import (
+	"github.com/Go0p/wsm/lib/httpx"
+	"github.com/Go0p/wsm/lib/shell"
+)
 
 type BaseShell struct {
 	// 连接地址
@@ -6,33 +11,35 @@ type BaseShell struct {
 	// 连接参数
 	Password string
 	// shell 类型
-	Script ScriptType
+	Script shell.ScriptType
 	Proxy  string
 	// 自定义 header 头
 	Headers map[string]string
+
+	Client *httpx.ReqClient
 }
 
-func (b BaseShell) Ping(p IParams) bool {
+func (b BaseShell) Ping(p shell.IParams) bool {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) BasicInfo() Result {
+func (b BaseShell) BasicInfo() shell.Result {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) CommandExec() Result {
+func (b BaseShell) CommandExec() shell.Result {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) OperationFile() Result {
+func (b BaseShell) OperationFile() shell.Result {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) OperationDatabase() Result {
+func (b BaseShell) OperationDatabase() shell.Result {
 	//TODO implement me
 	panic("implement me")
 }
