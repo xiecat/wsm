@@ -30,9 +30,18 @@ type GodzillaInfo struct {
 	dynamicClassNameHashMap map[string]string
 }
 
+func (g *GodzillaInfo) setDefaultParams() map[string]string {
+	g.dynamicClassNameHashMap = make(map[string]string, 2)
+	g.dynamicClassNameHashMap["test"] = "test"
+	g.dynamicClassNameHashMap["getBasicsInfo"] = "getBasicsInfo"
+	g.dynamicClassNameHashMap["execCommand"] = "execCommand"
+	return g.dynamicClassNameHashMap
+}
+
 func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	g.secretKey = utils.SecretKey(g.Key)
-	g.dynamicClassNameHashMap = make(map[string]string, 2)
+	g.dynamicClassNameHashMap = g.setDefaultParams()
+
 	if len(g.Encoding) == 0 {
 		g.Encoding = "utf-8"
 	}
@@ -187,7 +196,8 @@ func (g *GodzillaInfo) getBasicsInfo() string {
 func (g *GodzillaInfo) execCommand(commandStr string) string {
 	parameter := getParameter()
 	// 这个 cmdLine 参数多半是为了兼容 godzilla v3 ?
-	parameter.AddBytes("cmdLine", []byte(commandStr))
+	cl, _ := g.encoding.CharsetEncode(commandStr)
+	parameter.AddBytes("cmdLine", cl)
 	commandArgs := godzilla.SplitArgs(commandStr, 10000, false)
 	for i := 0; i < len(commandArgs); i++ {
 		encode, err := g.encoding.CharsetEncode(commandArgs[i])

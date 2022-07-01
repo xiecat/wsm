@@ -35,16 +35,16 @@ func (e *EncodingCharset) SetCharset(c string) {
 
 // 猜得太不准了，中文加英文必猜错
 func (e *EncodingCharset) chardet(data []byte) error {
-	if e.charset == Chardet {
-		det := chardet.NewTextDetector()
-		guess, err := det.DetectAll(data)
+	//if e.charset == Chardet {
+	det := chardet.NewTextDetector()
+	guess, err := det.DetectAll(data)
 
-		if err != nil {
-			return err
-		}
-		fmt.Println(guess)
-		e.charset = guess[0].Charset
+	if err != nil {
+		return err
 	}
+	fmt.Println(guess)
+	e.charset = guess[0].Charset
+	//}
 	return nil
 }
 
@@ -59,7 +59,8 @@ func (e *EncodingCharset) CharsetEncode(input string) ([]byte, error) {
 
 func (e *EncodingCharset) CharsetDecode(input []byte) (string, error) {
 	e.chardet(input)
-	b, err := charsetutil.DecodeBytes(input, "gbk")
+	//b, err := charsetutil.DecodeBytes(input, "gbk")
+	b, err := charsetutil.DecodeBytes(input, UTF8CharSet)
 	if err != nil {
 		log.Println(err)
 		return "", err
