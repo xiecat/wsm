@@ -152,7 +152,6 @@ func GetParamedAssembly(clsName string, params map[string]string) []byte {
 		paramsStr := ""
 		var paramName, paramValue string
 		for key := range params {
-			fmt.Println(key)
 			paramName = key
 			paramValue = base64.StdEncoding.EncodeToString([]byte(params[paramName]))
 			paramsStr = paramsStr + paramName + ":" + paramValue + ","

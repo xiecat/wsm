@@ -33,15 +33,19 @@ func MatchData(srcData, dataToFind []byte) int {
 	return -1
 }
 
-// GetIndexAndLastIndex 返回正常密文起始值、结束值
-func GetIndexAndLastIndex(src, substr []byte) (index int, endIndex int) {
-	if bytes.Contains(src, substr) {
-		index = bytes.Index(src, substr)
-		endIndex = index + len(substr)
-	} else {
-		return -1, -1
+// GetPrefixLenAndSuffixLen 返回正常密文起始值、结束值
+func GetPrefixLenAndSuffixLen(src []byte, substr ...[]byte) (index int, endIndex int) {
+	for _, b := range substr {
+		if bytes.Compare(src, b) == 0 {
+			return 0, 0
+		} else if bytes.Contains(src, b) {
+			index = bytes.Index(src, b)
+			// 从后往前减，也就是干扰字符的长度
+			endIndex = len(src) - len(substr) - index
+			return
+		}
 	}
-	return
+	return -1, -1
 }
 
 // MergeBytes 合并 byte 数组
