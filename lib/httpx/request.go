@@ -21,12 +21,6 @@ const (
 	KeepAlive  = 15 * time.Second
 )
 
-type Result struct {
-	Data   []byte
-	Status int
-	Header http.Header
-}
-
 type ReqClient struct {
 	client *http.Client
 	header map[string]string
@@ -87,21 +81,35 @@ func newClient(proxyUrl string) *http.Client {
 	}
 }
 
-func (r *ReqClient) DoRequest(url string, data string, beginIndex, endIndex int) (*Result, bool) {
-	resultObj := r.sendPayload(url, data)
-	resData := bytes.TrimRight(resultObj.Data, "\r\n\r\n")
-	if (beginIndex != 0 || endIndex != 0) && len(resData)-endIndex >= beginIndex {
-		resData = resData[beginIndex : len(resData)-endIndex]
+func (r *ReqClient) DoRequestAndMatch(url string, data string, suffixLen, prefixLen int) (*Result, bool) {
+	result, _ := r.sendPayload(url, data)
+	//body := bytes.TrimRight(result.RawBody, "\r\n\r\n")
+	body := result.RawBody
+	if (suffixLen != 0 || prefixLen != 0) && len(body)-prefixLen >= suffixLen {
+		body = body[suffixLen : len(body)-prefixLen]
 	}
-	resultObj.Data = resData
-	if len(resData) == 0 && resultObj.Status == 404 {
+	result.RawBody = body
+	if len(body) == 0 && result.Status == 404 {
 		return nil, false
-	} else if len(resData) == 0 && resultObj.Status == 200 {
+	} else if len(body) == 0 && result.Status == 200 {
 		return nil, true
 	}
-	return resultObj, true
+	return result, true
 }
 
+func (r *ReqClient) DoRequest(url string, data string) (*Result, bool) {
+	result, _ := r.sendPayload(url, data)
+	body := bytes.TrimRight(result.RawBody, "\r\n\r\n")
+	result.RawBody = body
+	if len(body) == 0 && result.Status == 404 {
+		return nil, false
+	} else if len(body) == 0 && result.Status == 200 {
+		return nil, true
+	}
+	return result, true
+}
+
+// 设置必要的 header 头
 func (r *ReqClient) setHeader() http.Header {
 	h := make(http.Header, 2)
 	if r.script == shell.JavaScript {
@@ -109,27 +117,28 @@ func (r *ReqClient) setHeader() http.Header {
 			h.Set("Content-type", "application/x-www-form-urlencoded")
 		} else if r.crypto == godzilla.JAVA_AES_RAW {
 		} else {
-			log.Println("encryption mode err")
+			log.Println("不需要设置 Header")
 		}
 	} else if r.script == shell.CsharpScript {
 		if r.crypto == godzilla.CSHARP_AES_BASE64 {
+			h.Set("Content-type", "application/x-www-form-urlencoded")
 		} else if r.crypto == godzilla.CSHARP_AES_RAW {
 		} else {
-			log.Println("encryption mode err")
+			log.Println("不需要设置 Header")
 		}
 	} else if r.script == shell.PhpScript {
 		if r.crypto == godzilla.PHP_XOR_BASE64 {
 			h.Set("Content-type", "application/x-www-form-urlencoded")
 		} else if r.crypto == godzilla.PHP_XOR_RAW {
 		} else {
-			log.Println("encryption mode err")
+			log.Println("不需要设置 Header")
 		}
 	} else if r.script == shell.AspScript {
 		if r.crypto == godzilla.ASP_XOR_BASE64 {
 			h.Set("Content-type", "application/x-www-form-urlencoded")
 		} else if r.crypto == godzilla.ASP_XOR_RAW {
 		} else {
-			log.Println("encryption mode err")
+			log.Println("不需要设置 Header")
 		}
 	} else {
 	}
@@ -139,22 +148,24 @@ func (r *ReqClient) setHeader() http.Header {
 	return h
 }
 
-func (r *ReqClient) sendPayload(u string, data string) *Result {
+func (r *ReqClient) sendPayload(u string, data string) (*Result, error) {
 	result := new(Result)
 	request, err := http.NewRequest(http.MethodPost, u, strings.NewReader(data))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	request.Header = r.setHeader()
 	resp, err := r.client.Do(request)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	result.Data = body
-	result.Header = resp.Header
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result.RawBody = body
 	result.Status = resp.StatusCode
-	return result
+	return result, nil
 }

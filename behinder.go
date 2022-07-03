@@ -9,16 +9,17 @@ import (
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/behinder"
 	"github.com/Go0p/wsm/lib/utils"
+	"log"
 )
 
 type BehinderInfo struct {
 	BaseShell
 	secretKey   []byte
 	encryptMode int
-	// response body 中的起始位
-	beginIndex int
-	// response body 中的结束位
-	endIndex int
+	// response 开头的干扰字符
+	prefixLen int
+	// response 结尾的干扰字符
+	suffixLen int
 }
 
 func NewBehinder(b BehinderInfo) *BehinderInfo {
@@ -38,44 +39,48 @@ func (b *BehinderInfo) processParams(p map[string]string) {
 	}
 }
 
-func (b *BehinderInfo) Ping(p shell.IParams) bool {
-	p.Check()
-	params, err := utils.ToMapParams(p)
+func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
+	var params map[string]string
+	var err error
+	if len(p) == 0 {
+		np := &behinder.PingParams{}
+		np.Check()
+		params, err = utils.ToMapParams(np)
+	} else {
+		p[0].Check()
+		params, err = utils.ToMapParams(p[0])
+	}
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
-	resultObj, ok := b.Client.DoRequest(b.Url, data, b.beginIndex, b.endIndex)
+	resultObj, ok := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
 	if !ok {
 		return false
 	}
-	localResultTxt := fmt.Sprintf(`{"msg":"%s","Status":"c3VjY2Vzcw=="}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
-	localResultTxt2 := fmt.Sprintf(`{"Status":"c3VjY2Vzcw==","msg":"%s",}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
-	var localResult, localResult2 []byte
+	wantResultTxt := fmt.Sprintf(`{"msg":"%s","status":"c3VjY2Vzcw=="}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
+	wantResultTxt2 := fmt.Sprintf(`{"status":"c3VjY2Vzcw==","msg":"%s"}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
+	//var enWantResult []byte
+	var enWantResult, enWantResult2 []byte
 	if params["notEncrypt"] == "true" {
-		localResult = []byte(localResultTxt)
-		localResult2 = []byte(localResultTxt2)
+		enWantResult = []byte(wantResultTxt)
+		enWantResult2 = []byte(wantResultTxt2)
 	} else {
-		localResult = behinder.Encrypto([]byte(localResultTxt), b.secretKey, b.encryptMode, b.Script)
-		localResult2 = behinder.Encrypto([]byte(localResultTxt2), b.secretKey, b.encryptMode, b.Script)
+		enWantResult = behinder.Encrypto([]byte(wantResultTxt), b.secretKey, b.encryptMode, b.Script)
+		enWantResult2 = behinder.Encrypto([]byte(wantResultTxt2), b.secretKey, b.encryptMode, b.Script)
 	}
-	resData := resultObj.Data
-	fmt.Println("resData", base64.StdEncoding.EncodeToString(resData))
-	fmt.Println("localResult", base64.StdEncoding.EncodeToString(localResult))
-	s1 := dynamic.MatchData(resData, localResult)
-	s2 := dynamic.MatchData(resData, localResult2)
-	if s1 < 0 && s2 < 0 {
-		b.beginIndex = 0
-		b.endIndex = 0
-	} else if s1 >= 0 {
-		b.endIndex = len(resData) - b.beginIndex - len(localResult)
-	} else if s2 >= 0 {
-		b.endIndex = len(resData) - b.beginIndex - len(localResult2)
-	}
-	resultTxt := behinder.Decrypto(resData[b.beginIndex:len(resData)-b.endIndex], b.secretKey, b.encryptMode, b.Script, params["notEncrypt"])
-	fmt.Println("resultTxt", base64.StdEncoding.EncodeToString(resultTxt))
+	rawBody := resultObj.RawBody
+	log.Println("rawBody", base64.StdEncoding.EncodeToString(rawBody))
+	log.Println("enWantResult", base64.StdEncoding.EncodeToString(enWantResult))
+	log.Println("enWantResult2", base64.StdEncoding.EncodeToString(enWantResult2))
+	//s1 := dynamic.MatchData(rawBody, enWantResult)
+	//s2 := dynamic.MatchData(rawBody, enWantResult2)
+	b.prefixLen, b.suffixLen = dynamic.GetPrefixLenAndSuffixLen(rawBody, enWantResult, enWantResult2)
+	log.Println("Begin Index", b.prefixLen, b.suffixLen)
+	resultTxt := behinder.Decrypto(rawBody[b.prefixLen:len(rawBody)-b.suffixLen], b.secretKey, b.encryptMode, b.Script, params["notEncrypt"])
+	log.Println("resultTxt", base64.StdEncoding.EncodeToString(resultTxt))
 	result := make(map[string]string, 2)
 	if err := json.Unmarshal(resultTxt, &result); err == nil {
 		for k, v := range result {
@@ -85,11 +90,42 @@ func (b *BehinderInfo) Ping(p shell.IParams) bool {
 			}
 		}
 	}
+	log.Println(result)
 	return false
 }
 
-func (b *BehinderInfo) BasicInfo() shell.Result {
-	//b.Params.Check()
-	//fmt.Printf("%#+v\n", b.Params)
-	return nil
+// BasicInfo 不传参数就使用默认参数值
+func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.Result {
+	var params map[string]string
+	var err error
+	if len(p) == 0 {
+		np := &behinder.BasicInfoParams{}
+		np.Check()
+		params, err = utils.ToMapParams(np)
+	} else {
+		p[0].Check()
+		params, err = utils.ToMapParams(p[0])
+	}
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	b.processParams(params)
+	data := behinder.GetData(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
+	resultObj, ok := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
+	if !ok {
+		return nil
+	}
+	resData := resultObj.RawBody
+	resultBs64Str := behinder.Decrypto(resData, b.secretKey, b.encryptMode, b.Script, params["notEncrypt"])
+	result := make(map[string]string, 2)
+	if err := json.Unmarshal(resultBs64Str, &result); err == nil {
+		for k, v := range result {
+			value, err := base64.StdEncoding.DecodeString(v)
+			if err == nil {
+				result[k] = string(value)
+			}
+		}
+	}
+	return result
 }
