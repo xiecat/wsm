@@ -21,14 +21,14 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	log.Println("Jsp Index")
 	testJspIndex()
-	//log.Println("Jsp")
-	//testJsp()
-	//log.Println("Aspx")
-	//testAspx()
-	//log.Println("Asp")
-	//testAsp()
-	//log.Println("Php")
-	//testPhp()
+	log.Println("Jsp")
+	testJsp()
+	log.Println("Aspx")
+	testAspx()
+	log.Println("Asp")
+	testAsp()
+	log.Println("Php")
+	testPhp()
 }
 
 func testPhp() {

@@ -38,7 +38,8 @@ func (b *BehinderInfo) setHeaders() map[string]string {
 	case shell.JavaScript:
 		h["Content-type"] = "application/x-www-form-urlencoded"
 	case shell.CsharpScript:
-		h["Content-type"] = "application/x-www-form-urlencoded"
+		// 也可以不加
+		h["Content-type"] = "application/octet-stream"
 	case shell.PhpScript:
 		h["Content-type"] = "application/x-www-form-urlencoded"
 	case shell.AspScript:
