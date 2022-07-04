@@ -8,7 +8,7 @@ import (
 
 func Test_decryptForCSharp(t *testing.T) {
 	// rNA7qt3vG0zX1iz0oKDWMxkXILuL519QB3HK8qDzThNHCJVpsqHACEF1Hii2t7NV2EeWa8rSqygShPuOzAVrbdDlEfe1aQzNCm
-	bs, _ := base64.StdEncoding.DecodeString("vG7dOhhPqMoYV6WC3Rj3Fte/Mnqq2agRfeSGMrdO5Na+3IC4Id1mguhqCs16rNt1yP7RXh4/5IPY4oW29UJ8w4ZsQwr+COJcso0A8GOeUCv9tVNgDSWudEb1eqtXgRgfnmSTrnSRkwJCocHy8a4q6qqQ5dmtr+77GsjOjQe+BIlF2KFh6c8gJQAzpQGduRhmy9awATimy4lIENSWl/zWn6pKh2ZdWMPPh/JQKRcPBIA=")
+	bs, _ := base64.StdEncoding.DecodeString("eyJtc2ciOiJlSGg0ZUhoNGVBPT0iLCJzdGF0dXMiOiJjM1ZqWTJWemN3PT0ifWFzZGZoa2poZGZsa2J6eA0KDQoNCg0KDQoNCg0KeHh4eHh4eHh4eHh4eHhhZHJn")
 	key := []byte("e45e329feb5d925b")
 	a := decryptForCSharp(bs, key)
 	fmt.Printf("%#+v\n", string(a))

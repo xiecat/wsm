@@ -16,7 +16,8 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 	if script == shell.JavaScript {
 		if cryption == JAVA_AES_BASE64 {
 			//key =
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForJava(content, key))))
+			payload := url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForJava(content, key)))
+			result = []byte(pass + "=" + payload)
 		} else if cryption == JAVA_AES_RAW {
 			result = encryptForJava(content, key)
 		} else {
@@ -24,7 +25,8 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 		}
 	} else if script == shell.CsharpScript {
 		if cryption == CSHARP_AES_BASE64 {
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForCSharp(content, key))))
+			payload := url.QueryEscape(base64.StdEncoding.EncodeToString(encryptForCSharp(content, key)))
+			result = []byte(pass + "=" + payload)
 		} else if cryption == CSHARP_AES_RAW {
 			result = encryptForCSharp(content, key)
 		} else {
@@ -32,7 +34,8 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 		}
 	} else if script == shell.PhpScript {
 		if cryption == PHP_XOR_BASE64 {
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key))))
+			payload := url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key)))
+			result = []byte(pass + "=" + payload)
 		} else if cryption == PHP_XOR_RAW {
 			result = encrypt.Xor(content, key)
 		} else {
@@ -40,7 +43,8 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 		}
 	} else if script == shell.AspScript {
 		if cryption == ASP_XOR_BASE64 {
-			result = []byte(pass + "=" + url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key))))
+			payload := url.QueryEscape(base64.StdEncoding.EncodeToString(encrypt.Xor(content, key)))
+			result = []byte(pass + "=" + payload)
 		} else if cryption == ASP_XOR_RAW {
 			result = encrypt.Xor(content, key)
 		} else {

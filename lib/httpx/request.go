@@ -81,91 +81,43 @@ func newClient(proxyUrl string) *http.Client {
 	}
 }
 
-func (r *ReqClient) DoRequestAndMatch(url string, data string, suffixLen, prefixLen int) (*Result, bool) {
-	result, _ := r.sendPayload(url, data)
-	//body := bytes.TrimRight(result.RawBody, "\r\n\r\n")
-	body := result.RawBody
-	if (suffixLen != 0 || prefixLen != 0) && len(body)-prefixLen >= suffixLen {
-		body = body[suffixLen : len(body)-prefixLen]
+func (r *ReqClient) DoRequest(url string, data string) (*Result, error) {
+	resp, err := r.sendPayload(url, data)
+	if err != nil {
+		return nil, err
 	}
-	result.RawBody = body
-	if len(body) == 0 && result.Status == 404 {
-		return nil, false
-	} else if len(body) == 0 && result.Status == 200 {
-		return nil, true
+	result, err := r.parseHttpResponse(resp)
+	if err != nil {
+		return nil, err
 	}
-	return result, true
+	return result, nil
 }
 
-func (r *ReqClient) DoRequest(url string, data string) (*Result, bool) {
-	result, _ := r.sendPayload(url, data)
-	body := bytes.TrimRight(result.RawBody, "\r\n\r\n")
-	result.RawBody = body
-	if len(body) == 0 && result.Status == 404 {
-		return nil, false
-	} else if len(body) == 0 && result.Status == 200 {
-		return nil, true
-	}
-	return result, true
-}
-
-// 设置必要的 header 头
-func (r *ReqClient) setHeader() http.Header {
-	h := make(http.Header, 2)
-	if r.script == shell.JavaScript {
-		if r.crypto == godzilla.JAVA_AES_BASE64 {
-			h.Set("Content-type", "application/x-www-form-urlencoded")
-		} else if r.crypto == godzilla.JAVA_AES_RAW {
-		} else {
-			log.Println("不需要设置 Header")
-		}
-	} else if r.script == shell.CsharpScript {
-		if r.crypto == godzilla.CSHARP_AES_BASE64 {
-			h.Set("Content-type", "application/x-www-form-urlencoded")
-		} else if r.crypto == godzilla.CSHARP_AES_RAW {
-		} else {
-			log.Println("不需要设置 Header")
-		}
-	} else if r.script == shell.PhpScript {
-		if r.crypto == godzilla.PHP_XOR_BASE64 {
-			h.Set("Content-type", "application/x-www-form-urlencoded")
-		} else if r.crypto == godzilla.PHP_XOR_RAW {
-		} else {
-			log.Println("不需要设置 Header")
-		}
-	} else if r.script == shell.AspScript {
-		if r.crypto == godzilla.ASP_XOR_BASE64 {
-			h.Set("Content-type", "application/x-www-form-urlencoded")
-		} else if r.crypto == godzilla.ASP_XOR_RAW {
-		} else {
-			log.Println("不需要设置 Header")
-		}
-	} else {
-	}
-	for k, v := range r.header {
-		h.Set(k, v)
-	}
-	return h
-}
-
-func (r *ReqClient) sendPayload(u string, data string) (*Result, error) {
-	result := new(Result)
+func (r *ReqClient) sendPayload(u string, data string) (*http.Response, error) {
 	request, err := http.NewRequest(http.MethodPost, u, strings.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
-	request.Header = r.setHeader()
+	for k, v := range r.header {
+		request.Header.Set(k, v)
+	}
 	resp, err := r.client.Do(request)
 	if err != nil {
 		return nil, err
 	}
 
+	return resp, nil
+}
+
+func (r *ReqClient) parseHttpResponse(resp *http.Response) (*Result, error) {
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	result := new(Result)
+	raw, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	result.RawBody = body
+	raw = bytes.TrimRight(raw, "\r\n\r\n")
+	result.RawBody = raw
 	result.Status = resp.StatusCode
 	return result, nil
 }

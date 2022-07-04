@@ -1,3 +1,4 @@
+' FLAG_STR
 Set Parameters=Server.CreateObject("Scripting.Dictionary")
 Function Base64Encode(sText)
     Dim oXML, oNode

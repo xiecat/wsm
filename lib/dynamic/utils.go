@@ -35,13 +35,13 @@ func MatchData(srcData, dataToFind []byte) int {
 
 // GetPrefixLenAndSuffixLen 返回正常密文起始值、结束值
 func GetPrefixLenAndSuffixLen(src []byte, substr ...[]byte) (index int, endIndex int) {
-	for _, b := range substr {
+	for i, b := range substr {
 		if bytes.Compare(src, b) == 0 {
 			return 0, 0
 		} else if bytes.Contains(src, b) {
 			index = bytes.Index(src, b)
 			// 从后往前减，也就是干扰字符的长度
-			endIndex = len(src) - len(substr) - index
+			endIndex = len(src) - len(substr[i]) - index
 			return
 		}
 	}
