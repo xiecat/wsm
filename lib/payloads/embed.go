@@ -7,13 +7,13 @@ import (
 //go:embed behinder/java/*.class
 var BehinderClassPayloads embed.FS
 
-//go:embed behinder/php/*.php
+//go:embed behinder/php/*.php.txt
 var BehinderPhpPayloads embed.FS
 
 //go:embed behinder/csharp/*.dll
 var BehinderCsharpPayloads embed.FS
 
-//go:embed behinder/asp/*.asp
+//go:embed behinder/asp/*.asp.txt
 var BehinderAspPayloads embed.FS
 
 //go:embed godzilla/java/payloadv4.class
@@ -25,7 +25,7 @@ var GodClassPluginsFiles embed.FS
 //go:embed godzilla/php/payloadv4.php.txt
 var GodzillaPhpPayload []byte
 
-//go:embed godzilla/php/plugins/*.php
+//go:embed godzilla/php/plugins/*.php.txt
 var GodPhpPluginsFiles embed.FS
 
 //go:embed godzilla/csharp/payload.dll
@@ -37,5 +37,5 @@ var GodDllPluginsFiles embed.FS
 //go:embed godzilla/asp/payload.asp.txt
 var GodzillaAspPayload []byte
 
-//go:embed godzilla/asp/plugins/*.asp
+//go:embed godzilla/asp/plugins/*.asp.txt
 var GodAspPluginsFiles embed.FS
