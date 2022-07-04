@@ -27,8 +27,26 @@ func NewBehinder(b BehinderInfo) *BehinderInfo {
 	if b.Headers == nil {
 		b.Headers = make(map[string]string, 2)
 	}
+	b.Headers = b.setHeaders()
 	b.Client = httpx.NewClient(b.Proxy, b.Headers, b.Script, "")
 	return &b
+}
+
+func (b *BehinderInfo) setHeaders() map[string]string {
+	h := b.Headers
+	switch b.Script {
+	case shell.JavaScript:
+		h["Content-type"] = "application/x-www-form-urlencoded"
+	case shell.CsharpScript:
+		h["Content-type"] = "application/x-www-form-urlencoded"
+	case shell.PhpScript:
+		h["Content-type"] = "application/x-www-form-urlencoded"
+	case shell.AspScript:
+		h["Content-type"] = "application/x-www-form-urlencoded"
+	default:
+		panic("shell script type error [jsp/jspx/asp/aspx/php]")
+	}
+	return h
 }
 
 // processParams 不同的方法需要传递不同的参数
@@ -56,9 +74,11 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
-	resultObj, ok := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
-	if !ok {
-		return false
+	//resultObj, err := b.Client.DoRequest(b.Url, data, b.prefixLen, b.suffixLen)
+	resultObj, err := b.Client.DoRequest(b.Url, data)
+	if err != nil {
+		fmt.Println(err)
+		panic("EvalFunc1 error")
 	}
 	wantResultTxt := fmt.Sprintf(`{"msg":"%s","status":"c3VjY2Vzcw=="}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
 	wantResultTxt2 := fmt.Sprintf(`{"status":"c3VjY2Vzcw==","msg":"%s"}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
@@ -79,7 +99,7 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
 	//s2 := dynamic.MatchData(rawBody, enWantResult2)
 	b.prefixLen, b.suffixLen = dynamic.GetPrefixLenAndSuffixLen(rawBody, enWantResult, enWantResult2)
 	log.Println("Begin Index", b.prefixLen, b.suffixLen)
-	resultTxt := behinder.Decrypto(rawBody[b.prefixLen:len(rawBody)-b.suffixLen], b.secretKey, b.encryptMode, b.Script, params["notEncrypt"])
+	resultTxt := behinder.Decrypto(rawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
 	log.Println("resultTxt", base64.StdEncoding.EncodeToString(resultTxt))
 	result := make(map[string]string, 2)
 	if err := json.Unmarshal(resultTxt, &result); err == nil {
@@ -112,12 +132,13 @@ func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.Result {
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
-	resultObj, ok := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
-	if !ok {
-		return nil
+	//resultObj, err := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
+	resultObj, err := b.Client.DoRequest(b.Url, data)
+	if err != nil {
+		panic("EvalFunc1 error")
 	}
 	resData := resultObj.RawBody
-	resultBs64Str := behinder.Decrypto(resData, b.secretKey, b.encryptMode, b.Script, params["notEncrypt"])
+	resultBs64Str := behinder.Decrypto(resData, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
 	result := make(map[string]string, 2)
 	if err := json.Unmarshal(resultBs64Str, &result); err == nil {
 		for k, v := range result {

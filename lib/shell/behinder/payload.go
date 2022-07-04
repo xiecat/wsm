@@ -57,8 +57,8 @@ func GetData(key []byte, className string, params map[string]string, types shell
 func getParamedClass(clsName string, params map[string]string) []byte {
 	//filePath := fmt.Sprintf("E:\\Code\\shells\\bingo\\internal\\payloadx\\behinder\\java\\%s.class", clsName)
 	//payloadBytes := getFileContent(filePath)
-	//payloadBytes, err := payloadx.BeClassFiles.ReadFile(fmt.Sprintf("java/%s.class", clsName))
-	payloadBytes, err := payloads.BeClassFiles.ReadFile(fmt.Sprintf("behinder/java/%s.class", clsName))
+	//payloadBytes, err := payloadx.BehinderClassPayloads.ReadFile(fmt.Sprintf("java/%s.class", clsName))
+	payloadBytes, err := payloads.BehinderClassPayloads.ReadFile(fmt.Sprintf("behinder/java/%s.class", clsName))
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +92,7 @@ func getParamedPhp(clsName string, params map[string]string) []byte {
 	var code strings.Builder
 	//payloadPath := fmt.Sprintf("internal/payloadx/behinder/php/%s.php", clsName)
 	//payloadx := getFileContent(payloadPath)
-	payloadBytes, err := payloads.BePhpFiles.ReadFile(fmt.Sprintf("behinder/php/%s.php", clsName))
+	payloadBytes, err := payloads.BehinderPhpPayloads.ReadFile(fmt.Sprintf("behinder/php/%s.php", clsName))
 	if err != nil {
 		panic(err)
 	}
@@ -142,7 +142,7 @@ func getPhpParams(phpPayload []byte) []string {
 func GetParamedAssembly(clsName string, params map[string]string) []byte {
 	//filePath := fmt.Sprintf("internal/payloadx/behinder/csharp/%s.dll", clsName)
 	//payloadx := getFileContent(filePath)
-	payloadBytes, err := payloads.BeDllFiles.ReadFile(fmt.Sprintf("behinder/csharp/%s.dll", clsName))
+	payloadBytes, err := payloads.BehinderCsharpPayloads.ReadFile(fmt.Sprintf("behinder/csharp/%s.dll", clsName))
 	if err != nil {
 		panic(err)
 	}
@@ -166,7 +166,7 @@ func GetParamedAsp(clsName string, params map[string]string) []byte {
 	var code strings.Builder
 	//payloadPath := fmt.Sprintf("internal/payloadx/behinder/asp/%s.asp", clsName)
 	//payloadx := getFileContent(payloadPath)
-	payloadBytes, err := payloads.BeAspFiles.ReadFile(fmt.Sprintf("behinder/asp/%s.asp", clsName))
+	payloadBytes, err := payloads.BehinderAspPayloads.ReadFile(fmt.Sprintf("behinder/asp/%s.asp", clsName))
 	if err != nil {
 		panic(err)
 	}

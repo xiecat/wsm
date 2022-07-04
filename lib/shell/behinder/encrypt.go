@@ -24,22 +24,27 @@ func Encrypto(bs, key []byte, encryptType int, types shell.ScriptType) []byte {
 	return result
 }
 
-func Decrypto(bs, key []byte, encryptType int, types shell.ScriptType, notEncrypt string) []byte {
+func Decrypto(raw, key []byte, types shell.ScriptType, notEncrypt string, encryptType, prefixLen, suffixLen int) []byte {
 	var result []byte
+	var targetBts []byte
+	if (suffixLen != 0 || prefixLen != 0) && len(raw)-prefixLen >= suffixLen {
+		targetBts = raw[prefixLen : len(raw)-suffixLen]
+	} else {
+		targetBts = raw
+	}
 	if types == shell.JavaScript {
 		if notEncrypt != "true" {
-			result = decryptForJava(bs, key)
+			result = decryptForJava(targetBts, key)
 		} else {
-			result = bs
+			result = targetBts
 		}
 	} else if types == shell.PhpScript {
-		result = decryptForPhp(bs, key, encryptType)
+		result = decryptForPhp(targetBts, key, encryptType)
 	} else if types == shell.CsharpScript {
-		result = decryptForCSharp(bs, key)
+		result = decryptForCSharp(targetBts, key)
 	} else if types == shell.AspScript {
-		result = decryptForAsp(bs, key)
+		result = decryptForAsp(targetBts, key)
 	}
-
 	return result
 }
 
@@ -91,12 +96,12 @@ func encryptForPhp(pt, key []byte, encryptType int) []byte {
 func decryptForPhp(ct, key []byte, encryptType int) []byte {
 	var decrypted []byte
 	if encryptType == ENCRYPT_TYPE_AES {
-		ct, err := base64.StdEncoding.DecodeString(string(ct))
+		c, err := base64.StdEncoding.DecodeString(string(ct))
 		if err != nil {
 			log.Print("PHP CBC Resp Base64,")
 			//panic(err)
 		}
-		decrypted, err = encrypt.AESCBCDecrypt(ct, key, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+		decrypted, err = encrypt.AESCBCDecrypt(c, key, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 		if err != nil {
 			log.Println(err)
 		}

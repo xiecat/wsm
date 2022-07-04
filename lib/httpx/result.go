@@ -1,8 +1,9 @@
 package httpx
 
 type Result struct {
-	RawBody []byte
-	Status  int
+	RawBody   []byte
+	TargetStr []byte
+	Status    int
 }
 
 func NewResult(data []byte) *Result {

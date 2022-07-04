@@ -92,49 +92,6 @@ func TestMergeBytes(t *testing.T) {
 	}
 }
 
-func TestGetIndexAndLastIndex(t *testing.T) {
-	type args struct {
-		src    []byte
-		substr []byte
-	}
-	tests := []struct {
-		name          string
-		args          args
-		wantIndex     int
-		wantLastIndex int
-	}{
-		{
-			name: "base test",
-			args: args{
-				src:    []byte("AKJSHDFKdsjhfbahsbfjhysdfjadsbf"),
-				substr: []byte("SHDFKdsjhfbahsbfjhysdfj"),
-			},
-			wantIndex:     3,
-			wantLastIndex: 3 + len("SHDFKdsjhfbahsbfjhysdfj"),
-		},
-		{
-			name: "base test2",
-			args: args{
-				src:    []byte("AKJSHSHDFKds!@#$%^@C≈ç√∫∂jhfbahsbfjhysdfjysdfjadsbf"),
-				substr: []byte("SHDFKds!@#$%^@C≈ç√∫∂jhfbahsbfjhysdfj"),
-			},
-			wantIndex:     5,
-			wantLastIndex: 5 + len("SHDFKds!@#$%^@C≈ç√∫∂jhfbahsbfjhysdfj"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotIndex, gotLastIndex := GetPrefixLenAndSuffixLen(tt.args.src, tt.args.substr)
-			if gotIndex != tt.wantIndex {
-				t.Errorf("GetPrefixLenAndSuffixLen() gotIndex = %v, want %v", gotIndex, tt.wantIndex)
-			}
-			if gotLastIndex != tt.wantLastIndex {
-				t.Errorf("GetPrefixLenAndSuffixLen() gotLastIndex = %v, want %v", gotLastIndex, tt.wantLastIndex)
-			}
-		})
-	}
-}
-
 func TestGetPrefixLenAndSuffixLen(t *testing.T) {
 	src, _ := base64.StdEncoding.DecodeString("bUFVWUx6bXFuNVFQRGt5STVsdlNwMGZqaUJ1MWU3MDQ3WWpmY3p3WTZqNUduaVdTNUwxOHRNMlhWSmxEQTM5aFAySEZLZkRnelJ0cTJWaXpHQU1UaHUrNEpueWhJdW1aa3FiTktvMEQzMUJodHlWYVhXcERYQ2NGZGMyU3g5ZUQ0SEoyc3FPbUp5N0xrNHRYdjE2OW1uV0c5azQ2RHRzNzBZQW1vVlgvZGlYeGU1ZktSakNSdzE5QmlNbk9STThvTUVYeXhtc0k5VGpxZVBrMzBPMmgxeVZtK0pVbjdab1l2UFA5d3dSdEt1Q3lKd2dGb2dISk1TbTBWSHhnb1B5cGEwUkV1cmE3MTZUNml1SXpPZmw2dmc2RFRHU1o3dUEvdVlDZHBkNmYvWjQ9")
 	sub1, _ := base64.StdEncoding.DecodeString("SXo0TURRZnlqWkdhV1hRajBrQVVldVR3RWQyMEJDK0pJWGpoandPblJNMWFJNGJDUDhDVkJDd05EVDRPeUVadXFPWVBCQVJMeVlIRGRodTdEb2VIRE1IOHk3cGI3Z2k3N2FIdlBtTDlPQnR2aW00RzMwazNScTA5OVJLVUsxRkVMRGtsZENZYWgzZGgzWS9NbVJ5SGdPLy9zaC81YVNaMzdXenFnMElmaW13UzIzdWJmTFhnMU10Y0VwRjdRSmEvQXlpR2ZOclQ3QjN6UVRQTy9JVUdvS3J2WFYwODlzN04xRUdySWpmL2VOaVpTVHdLbnNPbkt2Mm54MGdKTXVHZkNDNjZ2Z3FxYmUweTQ3QWJ4eVcrTXFYNk9iTk0vYUxuTzZyT1ZtSi92b1k9")

@@ -23,21 +23,25 @@ const (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	log.Println("Jsp")
-	testJspBs64()
-	testJspRaw()
-	log.Println("Jspx")
-	testJspxBs64()
-	testJspxRaw()
+	//log.Println("Jsp")
+	//testJspBs64()
+	//testJspRaw()
+	//
+	//log.Println("Jspx")
+	//testJspxBs64()
+	//testJspxRaw()
+
 	log.Println("Aspx")
 	testAspxBs64()
 	testAspxRaw()
-	log.Println("Asp")
-	testAspBs64()
-	testAspRaw()
-	log.Println("Php")
-	testPhpBs64()
-	testPhpRaw()
+
+	//log.Println("Asp")
+	//testAspBs64()
+	//testAspRaw()
+
+	//log.Println("Php")
+	//testPhpBs64()
+	//testPhpRaw()
 }
 
 func testPhpBs64() {
@@ -47,9 +51,6 @@ func testPhpBs64() {
 			Password: "pass",
 			Script:   shell.PhpScript,
 			Proxy:    "http://127.0.0.1:9999",
-			// base64 的加密模式必须加上这个 header 头
-			//Headers: map[string]string{"User-Agent": "xxxxxxxxxxxxxxxxxxxxx"},
-			//Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
 		},
 		Key:      "key",
 		Crypto:   godzilla.PHP_XOR_BASE64,
@@ -138,9 +139,6 @@ func testAspBs64() {
 			Password: "pass",
 			Script:   shell.AspScript,
 			Proxy:    "http://127.0.0.1:9999",
-			// base64 的加密模式必须加上这个 header 头
-			//Headers: map[string]string{"User-Agent": "xxxxxxxxxxxxxxxxxxxxx"},
-			//Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
 		},
 		Key:      "key",
 		Crypto:   godzilla.ASP_XOR_BASE64,
