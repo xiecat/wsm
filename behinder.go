@@ -9,7 +9,6 @@ import (
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/behinder"
 	"github.com/Go0p/wsm/lib/utils"
-	"log"
 )
 
 type BehinderInfo struct {
@@ -75,8 +74,7 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
-	//resultObj, err := b.Client.DoRequest(b.Url, data, b.prefixLen, b.suffixLen)
-	resultObj, err := b.Client.DoRequest(b.Url, data)
+	resp, err := b.Client.DoHttpRequest(b.Url, data)
 	if err != nil {
 		fmt.Println(err)
 		panic("EvalFunc1 error")
@@ -92,16 +90,9 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
 		enWantResult = behinder.Encrypto([]byte(wantResultTxt), b.secretKey, b.encryptMode, b.Script)
 		enWantResult2 = behinder.Encrypto([]byte(wantResultTxt2), b.secretKey, b.encryptMode, b.Script)
 	}
-	rawBody := resultObj.RawBody
-	log.Println("rawBody", base64.StdEncoding.EncodeToString(rawBody))
-	log.Println("enWantResult", base64.StdEncoding.EncodeToString(enWantResult))
-	log.Println("enWantResult2", base64.StdEncoding.EncodeToString(enWantResult2))
-	//s1 := dynamic.MatchData(rawBody, enWantResult)
-	//s2 := dynamic.MatchData(rawBody, enWantResult2)
+	rawBody := resp.RawBody
 	b.prefixLen, b.suffixLen = dynamic.GetPrefixLenAndSuffixLen(rawBody, enWantResult, enWantResult2)
-	log.Println("Begin Index", b.prefixLen, b.suffixLen)
 	resultTxt := behinder.Decrypto(rawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
-	log.Println("resultTxt", base64.StdEncoding.EncodeToString(resultTxt))
 	result := make(map[string]string, 2)
 	if err := json.Unmarshal(resultTxt, &result); err == nil {
 		for k, v := range result {
@@ -111,12 +102,14 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
 			}
 		}
 	}
-	log.Println(result)
+	if result["status"] == "success" {
+		return true
+	}
 	return false
 }
 
 // BasicInfo 不传参数就使用默认参数值
-func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.Result {
+func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.IResult {
 	var params map[string]string
 	var err error
 	if len(p) == 0 {
@@ -133,21 +126,14 @@ func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.Result {
 	}
 	b.processParams(params)
 	data := behinder.GetData(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
-	//resultObj, err := b.Client.DoRequestAndMatch(b.Url, data, b.prefixLen, b.suffixLen)
-	resultObj, err := b.Client.DoRequest(b.Url, data)
+	resp, err := b.Client.DoHttpRequest(b.Url, data)
 	if err != nil {
 		panic("EvalFunc1 error")
 	}
-	resData := resultObj.RawBody
-	resultBs64Str := behinder.Decrypto(resData, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
-	result := make(map[string]string, 2)
-	if err := json.Unmarshal(resultBs64Str, &result); err == nil {
-		for k, v := range result {
-			value, err := base64.StdEncoding.DecodeString(v)
-			if err == nil {
-				result[k] = string(value)
-			}
-		}
-	}
+
+	resData := behinder.Decrypto(resp.RawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
+
+	result := NewResult(resData)
+	result.Parser()
 	return result
 }

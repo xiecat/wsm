@@ -19,16 +19,16 @@ const (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	log.Println("Jsp Index")
-	testJspIndex()
+	//log.Println("Jsp Index")
+	//testJspIndex()
 	log.Println("Jsp")
 	testJsp()
-	log.Println("Aspx")
-	testAspx()
-	log.Println("Asp")
-	testAsp()
-	log.Println("Php")
-	testPhp()
+	//log.Println("Aspx")
+	//testAspx()
+	//log.Println("Asp")
+	//testAsp()
+	//log.Println("Php")
+	//testPhp()
 }
 
 func testPhp() {
@@ -86,19 +86,20 @@ func testJsp() {
 			Headers:  nil,
 		}}
 	bx := wsm.NewBehinder(info)
-	p := &behinder.PingParams{
-		// response 结果不加密测试
-		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-		Content:        "xxxxxxx",
-	}
-	i := bx.Ping(p)
-	fmt.Println(i)
+	//p := &behinder.PingParams{
+	//	// response 结果不加密测试
+	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+	//	Content:        "xxxxxxx",
+	//}
+	//i := bx.Ping(p)
+	//fmt.Println(i)
 	//z := &behinder.BasicInfoParams{
 	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
 	//	WhatEver:       "xxxxxxx",
 	//}
 	//b := bx.BasicInfo(z)
-	//fmt.Println(b)
+	b := bx.BasicInfo()
+	fmt.Println(b.GetRaw())
 }
 
 func testJspIndex() {
