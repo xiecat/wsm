@@ -39,9 +39,9 @@ func main() {
 	testAspBs64()
 	testAspRaw()
 
-	log.Println("Php")
-	testPhpBs64()
-	testPhpRaw()
+	//log.Println("Php")
+	//testPhpBs64()
+	//testPhpRaw()
 }
 
 func testPhpBs64() {
