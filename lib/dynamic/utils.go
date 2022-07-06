@@ -3,6 +3,7 @@ package dynamic
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"math/rand"
 	"strings"
 	"time"
@@ -33,19 +34,19 @@ func MatchData(srcData, dataToFind []byte) int {
 	return -1
 }
 
-// GetPrefixLenAndSuffixLen 返回正常密文起始值、结束值
-func GetPrefixLenAndSuffixLen(src []byte, substr ...[]byte) (index int, endIndex int) {
+// GetPrefixLenAndSuffixLen 获取 response 中干扰字符长度
+func GetPrefixLenAndSuffixLen(src []byte, substr ...[]byte) (index int, endIndex int, err error) {
 	for i, b := range substr {
 		if bytes.Compare(src, b) == 0 {
-			return 0, 0
+			return 0, 0, nil
 		} else if bytes.Contains(src, b) {
 			index = bytes.Index(src, b)
 			// 从后往前减，也就是干扰字符的长度
 			endIndex = len(src) - len(substr[i]) - index
-			return
+			return index, endIndex, nil
 		}
 	}
-	panic("没有可被正常解密的返回值")
+	return -1, -1, errors.New("从 response 中没有发现可被正常解密的字段")
 }
 
 // MergeBytes 合并 byte 数组

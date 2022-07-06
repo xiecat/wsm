@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"errors"
 )
 
 type ecb struct {
@@ -63,14 +64,17 @@ func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 }
 
 // AESECBDecrypt ECB PKCS5 解密
-func AESECBDecrypt(crypted, key []byte) ([]byte, error) {
+func AESECBDecrypt(src, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
+	if len(src) == 0 {
+		return nil, errors.New("plain content empty")
+	}
 	blockMode := NewECBDecrypter(block)
-	origData := make([]byte, len(crypted))
-	blockMode.CryptBlocks(origData, crypted)
+	origData := make([]byte, len(src))
+	blockMode.CryptBlocks(origData, src)
 	origData = iPKCS5UnPadding(origData)
 	return origData, nil
 }
@@ -81,11 +85,13 @@ func AESECBEncrypt(src, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	ecb := NewECBEncrypter(block)
-	content := src
-	content = iPKCS5Padding(content, block.BlockSize())
+	if len(src) == 0 {
+		return nil, errors.New("plain content empty")
+	}
+	e := NewECBEncrypter(block)
+	content := iPKCS5Padding(src, block.BlockSize())
 	des := make([]byte, len(content))
-	ecb.CryptBlocks(des, content)
+	e.CryptBlocks(des, content)
 	return des, nil
 }
 

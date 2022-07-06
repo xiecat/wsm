@@ -1,10 +1,11 @@
 package httpx
 
 import (
+	"bytes"
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/godzilla"
+	"github.com/pkg/errors"
 	"net/http"
-	"strings"
 )
 
 type ReqClient struct {
@@ -31,7 +32,7 @@ func randUa(header map[string]string) map[string]string {
 	return header
 }
 
-func (r *ReqClient) DoHttpRequest(url string, data string) (*HttpResponse, error) {
+func (r *ReqClient) DoHttpRequest(url string, data []byte) (*HttpResponse, error) {
 	resp, err := r.sendPayload(url, data)
 	if err != nil {
 		return nil, err
@@ -43,8 +44,8 @@ func (r *ReqClient) DoHttpRequest(url string, data string) (*HttpResponse, error
 	return result, nil
 }
 
-func (r *ReqClient) sendPayload(u string, data string) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodPost, u, strings.NewReader(data))
+func (r *ReqClient) sendPayload(u string, data []byte) (*http.Response, error) {
+	request, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +54,8 @@ func (r *ReqClient) sendPayload(u string, data string) (*http.Response, error) {
 	}
 	resp, err := r.client.Do(request)
 	if err != nil {
-		return nil, err
-	}
+		return nil, errors.Wrap(err, "http client request fail")
 
+	}
 	return resp, nil
 }

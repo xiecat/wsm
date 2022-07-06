@@ -3,30 +3,68 @@ package wsm
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/Go0p/wsm/lib/utils"
 )
 
-type Result struct {
-	Raw []byte
-
-	Status int
+type bResult struct {
+	Raw    []byte
+	Body   map[string]string
+	Status bool
 }
 
-func NewResult(data []byte) *Result {
-	return &Result{Raw: data}
+func (b *bResult) ToMap() map[string]string {
+	return b.Body
 }
 
-func (r *Result) Parser() {
-	result := make(map[string]string, 2)
-	if err := json.Unmarshal(r.Raw, &result); err == nil {
-		for k, v := range result {
-			value, err := base64.StdEncoding.DecodeString(v)
-			if err == nil {
-				result[k] = string(value)
-			}
-		}
+func (b *bResult) ToString() string {
+	str, err := utils.MapToJsonStr(b.Body)
+	if err != nil {
+		return ""
 	}
+	return str
 }
 
-func (r *Result) GetRaw() string {
-	return string(r.Raw)
+func newBResult(raw []byte) *bResult {
+	return &bResult{Raw: raw}
+}
+
+func (b *bResult) Parser() error {
+	result := make(map[string]string, 2)
+	err := json.Unmarshal(b.Raw, &result)
+	if err != nil {
+		return err
+	}
+	for k, v := range result {
+		value, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return err
+		}
+		result[k] = string(value)
+	}
+	b.Body = result
+	return nil
+}
+
+type gResult struct {
+	Raw    []byte
+	Body   string
+	Status bool
+}
+
+func newGResult(raw []byte) *gResult {
+	return &gResult{Raw: raw}
+}
+
+func (g gResult) Parser() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g gResult) ToMap() map[string]string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g gResult) ToString() string {
+	return string(g.Raw)
 }
