@@ -106,6 +106,7 @@ func TestGetPrefixLenAndSuffixLen(t *testing.T) {
 		args         args
 		wantIndex    int
 		wantEndIndex int
+		wantErr      bool
 	}{
 		{
 			name: "test success",
@@ -118,6 +119,7 @@ func TestGetPrefixLenAndSuffixLen(t *testing.T) {
 			},
 			wantIndex:    0,
 			wantEndIndex: 0,
+			wantErr:      false,
 		},
 		{
 			name: "test success",
@@ -130,9 +132,10 @@ func TestGetPrefixLenAndSuffixLen(t *testing.T) {
 			},
 			wantIndex:    0,
 			wantEndIndex: 0,
+			wantErr:      false,
 		},
 		{
-			name: "test success",
+			name: "test fail",
 			args: args{
 				src: []byte("aaaaaaaaaa"),
 				substr: [][]byte{
@@ -142,11 +145,16 @@ func TestGetPrefixLenAndSuffixLen(t *testing.T) {
 			},
 			wantIndex:    -1,
 			wantEndIndex: -1,
+			wantErr:      true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotIndex, gotEndIndex := GetPrefixLenAndSuffixLen(tt.args.src, tt.args.substr...)
+			gotIndex, gotEndIndex, err := GetPrefixLenAndSuffixLen(tt.args.src, tt.args.substr...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetPrefixLenAndSuffixLen() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if gotIndex != tt.wantIndex {
 				t.Errorf("GetPrefixLenAndSuffixLen() gotIndex = %v, want %v", gotIndex, tt.wantIndex)
 			}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"fmt"
+	"errors"
 )
 
 func AESCBCEncrypt(src, key, iv []byte) ([]byte, error) {
@@ -13,7 +13,7 @@ func AESCBCEncrypt(src, key, iv []byte) ([]byte, error) {
 		return nil, err
 	}
 	if len(src) == 0 {
-		fmt.Println("plain content empty")
+		return nil, errors.New("plain content empty")
 	}
 	cbc := cipher.NewCBCEncrypter(block, iv)
 	content := pKCS5Padding(src, block.BlockSize())
@@ -29,7 +29,7 @@ func AESCBCDecrypt(src []byte, key, iv []byte) ([]byte, error) {
 		return nil, err
 	}
 	if len(src) == 0 {
-		fmt.Println("plain content empty")
+		return nil, errors.New("plain content empty")
 	}
 	cbc := cipher.NewCBCDecrypter(block, iv)
 	decrypted := make([]byte, len(src))

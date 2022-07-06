@@ -1,7 +1,6 @@
 package godzilla
 
 import (
-	"fmt"
 	"github.com/gogs/chardet"
 	"github.com/yuin/charsetutil"
 	"log"
@@ -42,9 +41,8 @@ func (e *EncodingCharset) chardet(data []byte) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(guess)
+	log.Println(guess)
 	e.charset = guess[0].Charset
-	//}
 	return nil
 }
 
@@ -59,10 +57,9 @@ func (e *EncodingCharset) CharsetEncode(input string) ([]byte, error) {
 
 func (e *EncodingCharset) CharsetDecode(input []byte) (string, error) {
 	e.chardet(input)
-	//b, err := charsetutil.DecodeBytes(input, "gbk")
-	b, err := charsetutil.DecodeBytes(input, UTF8CharSet)
+	b, err := charsetutil.DecodeBytes(input, "gbk")
+	//b, err := charsetutil.DecodeBytes(input, UTF8CharSet)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	return b, nil

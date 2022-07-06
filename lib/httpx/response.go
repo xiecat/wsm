@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bytes"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -18,7 +19,7 @@ func newHttpResponse(resp *http.Response) (*HttpResponse, error) {
 	defer resp.Body.Close()
 	raw, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "read body fail")
 	}
 	raw = bytes.TrimRight(raw, "\r\n\r\n")
 	httpResp.RawBody = raw

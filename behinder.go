@@ -2,13 +2,15 @@ package wsm
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Go0p/wsm/lib/dynamic"
 	"github.com/Go0p/wsm/lib/httpx"
 	"github.com/Go0p/wsm/lib/shell"
 	"github.com/Go0p/wsm/lib/shell/behinder"
 	"github.com/Go0p/wsm/lib/utils"
+	"runtime"
+	"strings"
 )
 
 type BehinderInfo struct {
@@ -49,7 +51,41 @@ func (b *BehinderInfo) setHeaders() map[string]string {
 	return h
 }
 
-// processParams 不同的方法需要传递不同的参数
+func (b *BehinderInfo) setParams(p []shell.IParams) (map[string]string, error) {
+	pc, _, _, _ := runtime.Caller(1)
+	stack := strings.Split(runtime.FuncForPC(pc).Name(), ".")
+	funcName := stack[len(stack)-1]
+	var params map[string]string
+	var err error
+	if len(p) == 0 {
+		switch funcName {
+		case "Ping":
+			bp := &behinder.PingParams{}
+			bp.Check()
+			params, err = utils.ToMapParams(bp)
+		case "BasicInfo":
+			bp := &behinder.BasicInfoParams{}
+			bp.Check()
+			params, err = utils.ToMapParams(bp)
+		case "CommandExec":
+			bp := &behinder.ExecParams{}
+			bp.Check()
+			params, err = utils.ToMapParams(bp)
+		default:
+			return nil, errors.New(fmt.Sprintf("func name not find %s", funcName))
+		}
+		if err != nil {
+			return nil, err
+		}
+		return params, nil
+	} else {
+		p[0].Check()
+		params, err = utils.ToMapParams(p[0])
+	}
+	return params, nil
+}
+
+// processParams 只有 java 的 payload 需要这两个参数
 func (b *BehinderInfo) processParams(p map[string]string) {
 	if b.Script != shell.JavaScript {
 		delete(p, "forcePrint")
@@ -57,83 +93,89 @@ func (b *BehinderInfo) processParams(p map[string]string) {
 	}
 }
 
-func (b *BehinderInfo) Ping(p ...shell.IParams) bool {
-	var params map[string]string
-	var err error
-	if len(p) == 0 {
-		np := &behinder.PingParams{}
-		np.Check()
-		params, err = utils.ToMapParams(np)
-	} else {
-		p[0].Check()
-		params, err = utils.ToMapParams(p[0])
-	}
+func (b *BehinderInfo) Ping(p ...shell.IParams) (bool, error) {
+	params, err := b.setParams(p)
 	if err != nil {
-		fmt.Println(err)
-		return false
+		return false, err
 	}
 	b.processParams(params)
-	data := behinder.GetData(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
+	data, err := behinder.GetPayload(b.secretKey, "EchoGo", params, b.Script, b.encryptMode)
+	if err != nil {
+		return false, err
+	}
 	resp, err := b.Client.DoHttpRequest(b.Url, data)
 	if err != nil {
-		fmt.Println(err)
-		panic("EvalFunc1 error")
+		return false, err
 	}
-	wantResultTxt := fmt.Sprintf(`{"msg":"%s","status":"c3VjY2Vzcw=="}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
-	wantResultTxt2 := fmt.Sprintf(`{"status":"c3VjY2Vzcw==","msg":"%s"}`, base64.StdEncoding.EncodeToString([]byte(params["content"])))
+	content := params["content"]
+	wantResultTxt := fmt.Sprintf(`{"msg":"%s","status":"c3VjY2Vzcw=="}`, base64.StdEncoding.EncodeToString([]byte(content)))
+	wantResultTxt2 := fmt.Sprintf(`{"status":"c3VjY2Vzcw==","msg":"%s"}`, base64.StdEncoding.EncodeToString([]byte(content)))
 	//var enWantResult []byte
 	var enWantResult, enWantResult2 []byte
 	if params["notEncrypt"] == "true" {
 		enWantResult = []byte(wantResultTxt)
 		enWantResult2 = []byte(wantResultTxt2)
 	} else {
-		enWantResult = behinder.Encrypto([]byte(wantResultTxt), b.secretKey, b.encryptMode, b.Script)
-		enWantResult2 = behinder.Encrypto([]byte(wantResultTxt2), b.secretKey, b.encryptMode, b.Script)
-	}
-	rawBody := resp.RawBody
-	b.prefixLen, b.suffixLen = dynamic.GetPrefixLenAndSuffixLen(rawBody, enWantResult, enWantResult2)
-	resultTxt := behinder.Decrypto(rawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
-	result := make(map[string]string, 2)
-	if err := json.Unmarshal(resultTxt, &result); err == nil {
-		for k, v := range result {
-			value, err := base64.StdEncoding.DecodeString(v)
-			if err == nil {
-				result[k] = string(value)
-			}
+		enWantResult, err = behinder.Encrypto([]byte(wantResultTxt), b.secretKey, b.encryptMode, b.Script)
+		if err != nil {
+			return false, err
+		}
+		enWantResult2, err = behinder.Encrypto([]byte(wantResultTxt2), b.secretKey, b.encryptMode, b.Script)
+		if err != nil {
+			return false, err
 		}
 	}
-	if result["status"] == "success" {
-		return true
+	rawBody := resp.RawBody
+	b.prefixLen, b.suffixLen, err = dynamic.GetPrefixLenAndSuffixLen(rawBody, enWantResult, enWantResult2)
+	if err != nil {
+		return false, err
 	}
-	return false
+	resData, err := behinder.Decrypto(rawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
+	if err != nil {
+		return false, err
+	}
+
+	result := newBResult(resData)
+	err = result.Parser()
+	if err != nil {
+		return false, err
+	}
+	msg := result.ToMap()["msg"]
+	if msg == content {
+		return true, nil
+	} else {
+		return false, errors.New(msg)
+	}
 }
 
 // BasicInfo 不传参数就使用默认参数值
-func (b *BehinderInfo) BasicInfo(p ...shell.IParams) shell.IResult {
-	var params map[string]string
-	var err error
-	if len(p) == 0 {
-		np := &behinder.BasicInfoParams{}
-		np.Check()
-		params, err = utils.ToMapParams(np)
-	} else {
-		p[0].Check()
-		params, err = utils.ToMapParams(p[0])
-	}
+func (b *BehinderInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
+	params, err := b.setParams(p)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return nil, err
 	}
 	b.processParams(params)
-	data := behinder.GetData(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
+	data, err := behinder.GetPayload(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := b.Client.DoHttpRequest(b.Url, data)
 	if err != nil {
-		panic("EvalFunc1 error")
+		return nil, err
 	}
 
-	resData := behinder.Decrypto(resp.RawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
+	resData, err := behinder.Decrypto(resp.RawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
+	if err != nil {
+		return nil, err
+	}
+	result := newBResult(resData)
+	err = result.Parser()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
 
-	result := NewResult(resData)
-	result.Parser()
-	return result
+func (b *BehinderInfo) CommandExec() (shell.IResult, error) {
+	return nil, nil
 }

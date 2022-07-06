@@ -19,27 +19,27 @@ type BaseShell struct {
 	Client *httpx.ReqClient
 }
 
-func (b BaseShell) Ping(p ...shell.IParams) bool {
+func (b BaseShell) Ping(p ...shell.IParams) (bool, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) BasicInfo(p ...shell.IParams) shell.IResult {
+func (b BaseShell) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) CommandExec() shell.IResult {
+func (b BaseShell) CommandExec(p ...shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) OperationFile() shell.IResult {
+func (b BaseShell) OperationFile(p ...shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) OperationDatabase() shell.IResult {
+func (b BaseShell) OperationDatabase(p ...shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
