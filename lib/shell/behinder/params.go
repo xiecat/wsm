@@ -1,7 +1,7 @@
 package behinder
 
 import (
-	"github.com/Go0p/wsm/lib/utils"
+	"github.com/go0p/wsm/lib/utils"
 )
 
 type OnlyJavaParams struct {
@@ -17,10 +17,11 @@ type PingParams struct {
 }
 
 // Check 检查是否赋值，没有就使用随机值
-func (p *PingParams) Check() {
+func (p *PingParams) SetDefaultAndCheckValue() error {
 	if len(p.Content) == 0 {
 		p.Content = utils.RandomRangeString(50, 200)
 	}
+	return nil
 }
 
 type BasicInfoParams struct {
@@ -28,10 +29,11 @@ type BasicInfoParams struct {
 	WhatEver string `json:"whatever"`
 }
 
-func (b *BasicInfoParams) Check() {
+func (b *BasicInfoParams) SetDefaultAndCheckValue() error {
 	if len(b.WhatEver) == 0 {
 		b.WhatEver = utils.RandomRangeString(50, 200)
 	}
+	return nil
 }
 
 type ExecParams struct {
@@ -40,24 +42,22 @@ type ExecParams struct {
 	Path string `json:"path"`
 }
 
-func (e *ExecParams) Check() {
-
+func (e *ExecParams) SetDefaultAndCheckValue() error {
+	return nil
 }
 
 type FileOptParams struct {
 	OnlyJavaParams
-	Params struct {
-		Mode            string `json:"mode"`
-		CurrentPath     string `json:"current_path"`
-		NewFileName     string `json:"new_file_name"`
-		OldFileName     string `json:"old_file_name"`
-		DirName         string `json:"dir_name"`
-		RemotePath      string `json:"remote_path"`
-		LocalPath       string `json:"local_path"`
-		CharSet         string `json:"char_set"`
-		CreateTimeStamp string `json:"create_time_stamp"`
-		ModifyTimeStamp string `json:"modify_time_stamp"`
-		AccessTimeStamp string `json:"access_time_stamp"`
-		IsChunk         bool   `json:"is_chunk"`
-	} `json:"params"`
+	Mode            string `json:"mode"`
+	CurrentPath     string `json:"current_path"`
+	NewFileName     string `json:"new_file_name"`
+	OldFileName     string `json:"old_file_name"`
+	DirName         string `json:"dir_name"`
+	RemotePath      string `json:"remote_path"`
+	LocalPath       string `json:"local_path"`
+	Charset         string `json:"charset"`
+	CreateTimeStamp string `json:"create_time_stamp"`
+	ModifyTimeStamp string `json:"modify_time_stamp"`
+	AccessTimeStamp string `json:"access_time_stamp"`
+	IsChunk         bool   `json:"is_chunk"`
 }

@@ -7,6 +7,7 @@ const (
 )
 
 type IParams interface {
-	Check()
-	//Get(key string) string
+	SetDefaultAndCheckValue() error
+	//ToString() string
+	//ToMap() string
 }

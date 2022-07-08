@@ -2,8 +2,8 @@ package httpx
 
 import (
 	"bytes"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/godzilla"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/godzilla"
 	"github.com/pkg/errors"
 	"net/http"
 )

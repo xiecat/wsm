@@ -4,13 +4,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Go0p/wsm/lib/dynamic"
-	"github.com/Go0p/wsm/lib/httpx"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/behinder"
-	"github.com/Go0p/wsm/lib/utils"
-	"runtime"
-	"strings"
+	"github.com/go0p/wsm/lib/dynamic"
+	"github.com/go0p/wsm/lib/httpx"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/behinder"
+	"github.com/go0p/wsm/lib/utils"
 )
 
 type BehinderInfo struct {
@@ -23,14 +21,18 @@ type BehinderInfo struct {
 	suffixLen int
 }
 
-func NewBehinder(b BehinderInfo) *BehinderInfo {
+func NewBehinder(b *BehinderInfo) (*BehinderInfo, error) {
+	err := b.Verify()
+	if err != nil {
+		return nil, err
+	}
 	b.secretKey = utils.SecretKey(b.Password)
 	if b.Headers == nil {
 		b.Headers = make(map[string]string, 2)
 	}
 	b.Headers = b.setHeaders()
 	b.Client = httpx.NewClient(b.Proxy, b.Headers, b.Script, "")
-	return &b
+	return b, nil
 }
 
 func (b *BehinderInfo) setHeaders() map[string]string {
@@ -51,36 +53,28 @@ func (b *BehinderInfo) setHeaders() map[string]string {
 	return h
 }
 
-func (b *BehinderInfo) setParams(p []shell.IParams) (map[string]string, error) {
-	pc, _, _, _ := runtime.Caller(1)
-	stack := strings.Split(runtime.FuncForPC(pc).Name(), ".")
-	funcName := stack[len(stack)-1]
+func (b *BehinderInfo) setParams(i interface{}, p shell.IParams) (map[string]string, error) {
 	var params map[string]string
 	var err error
-	if len(p) == 0 {
-		switch funcName {
-		case "Ping":
-			bp := &behinder.PingParams{}
-			bp.Check()
-			params, err = utils.ToMapParams(bp)
-		case "BasicInfo":
-			bp := &behinder.BasicInfoParams{}
-			bp.Check()
-			params, err = utils.ToMapParams(bp)
-		case "CommandExec":
-			bp := &behinder.ExecParams{}
-			bp.Check()
-			params, err = utils.ToMapParams(bp)
+	if p == nil {
+		switch i.(type) {
+		case *behinder.PingParams:
+			i.(*behinder.PingParams).SetDefaultAndCheckValue()
+		case *behinder.BasicInfoParams:
+			i.(*behinder.BasicInfoParams).SetDefaultAndCheckValue()
 		default:
-			return nil, errors.New(fmt.Sprintf("func name not find %s", funcName))
+			return nil, errors.New(fmt.Sprintf("%v is undefined", i))
 		}
+		params, err = utils.ToMapParams(i)
 		if err != nil {
 			return nil, err
 		}
-		return params, nil
 	} else {
-		p[0].Check()
-		params, err = utils.ToMapParams(p[0])
+		p.SetDefaultAndCheckValue()
+		params, err = utils.ToMapParams(p)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return params, nil
 }
@@ -94,7 +88,13 @@ func (b *BehinderInfo) processParams(p map[string]string) {
 }
 
 func (b *BehinderInfo) Ping(p ...shell.IParams) (bool, error) {
-	params, err := b.setParams(p)
+	var pp shell.IParams
+	if len(p) == 0 {
+		pp = nil
+	} else {
+		pp = p[0]
+	}
+	params, err := b.setParams(&behinder.PingParams{}, pp)
 	if err != nil {
 		return false, err
 	}
@@ -150,7 +150,13 @@ func (b *BehinderInfo) Ping(p ...shell.IParams) (bool, error) {
 
 // BasicInfo 不传参数就使用默认参数值
 func (b *BehinderInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
-	params, err := b.setParams(p)
+	var pp shell.IParams
+	if len(p) == 0 {
+		pp = nil
+	} else {
+		pp = p[0]
+	}
+	params, err := b.setParams(&behinder.BasicInfoParams{}, pp)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +182,6 @@ func (b *BehinderInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 	return result, nil
 }
 
-func (b *BehinderInfo) CommandExec() (shell.IResult, error) {
+func (b *BehinderInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
 	return nil, nil
 }

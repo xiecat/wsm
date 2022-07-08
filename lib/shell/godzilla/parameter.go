@@ -2,7 +2,7 @@ package godzilla
 
 import (
 	"bytes"
-	"github.com/Go0p/wsm/lib/dynamic"
+	"github.com/go0p/wsm/lib/dynamic"
 	"strings"
 )
 

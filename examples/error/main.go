@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Go0p/wsm"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/behinder"
+	"github.com/go0p/wsm"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/behinder"
 )
 
 const JspErrorShellUrl = "http://139.196.175.86:8088/bxindex.jsp"

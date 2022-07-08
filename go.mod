@@ -1,4 +1,4 @@
-module github.com/Go0p/wsm
+module github.com/go0p/wsm
 
 go 1.17
 

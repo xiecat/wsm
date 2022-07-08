@@ -3,9 +3,9 @@ package godzilla
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/Go0p/wsm/lib/encrypt"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/utils"
+	"github.com/go0p/wsm/lib/encrypt"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/utils"
 	"net/url"
 	"regexp"
 )

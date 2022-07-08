@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Go0p/wsm"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/behinder"
+	"github.com/go0p/wsm"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/behinder"
 	"log"
 )
 
@@ -23,16 +23,16 @@ func main() {
 	testJspIndex()
 	log.Println("Jsp")
 	testJsp()
-	//log.Println("Aspx")
-	//testAspx()
-	//log.Println("Asp")
-	//testAsp()
-	//log.Println("Php")
-	//testPhp()
+	log.Println("Aspx")
+	testAspx()
+	log.Println("Asp")
+	testAsp()
+	log.Println("Php")
+	testPhp()
 }
 
 func testPhp() {
-	info := wsm.BehinderInfo{
+	info := &wsm.BehinderInfo{
 		BaseShell: wsm.BaseShell{
 			Url:      PhpShellUrl,
 			Password: "rebeyond",
@@ -40,7 +40,10 @@ func testPhp() {
 			Proxy:    "http://127.0.0.1:9999",
 			Headers:  nil,
 		}}
-	bx := wsm.NewBehinder(info)
+	bx, err := wsm.NewBehinder(info)
+	if err != nil {
+		log.Println(err)
+	}
 	i, err := bx.Ping()
 	if err != nil {
 		log.Println(err)
@@ -49,7 +52,7 @@ func testPhp() {
 }
 
 func testAsp() {
-	info := wsm.BehinderInfo{
+	info := &wsm.BehinderInfo{
 		BaseShell: wsm.BaseShell{
 			Url:      AspShellUrl,
 			Password: "rebeyond",
@@ -57,7 +60,10 @@ func testAsp() {
 			Proxy:    "http://127.0.0.1:9999",
 			Headers:  nil,
 		}}
-	bx := wsm.NewBehinder(info)
+	bx, err := wsm.NewBehinder(info)
+	if err != nil {
+		log.Println(err)
+	}
 
 	i, err := bx.Ping()
 	if err != nil {
@@ -67,7 +73,7 @@ func testAsp() {
 }
 
 func testAspx() {
-	info := wsm.BehinderInfo{
+	info := &wsm.BehinderInfo{
 		BaseShell: wsm.BaseShell{
 			Url:      CsharpShellUrl,
 			Password: "rebeyond",
@@ -76,7 +82,10 @@ func testAspx() {
 			Headers:  nil,
 		},
 	}
-	bx := wsm.NewBehinder(info)
+	bx, err := wsm.NewBehinder(info)
+	if err != nil {
+		log.Println(err)
+	}
 
 	i, err := bx.Ping()
 	if err != nil {
@@ -86,7 +95,7 @@ func testAspx() {
 }
 
 func testJsp() {
-	info := wsm.BehinderInfo{
+	info := &wsm.BehinderInfo{
 		BaseShell: wsm.BaseShell{
 			Url:      JspShellUrl,
 			Password: "rebeyond",
@@ -94,7 +103,10 @@ func testJsp() {
 			Proxy:    "http://127.0.0.1:9999",
 			Headers:  nil,
 		}}
-	bx := wsm.NewBehinder(info)
+	bx, err := wsm.NewBehinder(info)
+	if err != nil {
+		log.Println(err)
+	}
 	p := &behinder.PingParams{
 		// response 结果不加密测试
 		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
@@ -105,12 +117,12 @@ func testJsp() {
 		log.Println(err)
 	}
 	fmt.Println(i)
-	z := &behinder.BasicInfoParams{
-		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-		WhatEver:       "xxxxxxx",
-	}
-	b, err := bx.BasicInfo(z)
-	//b,err := bx.BasicInfo()
+	//z := &behinder.BasicInfoParams{
+	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+	//	WhatEver:       "xxxxxxx",
+	//}
+	//b, err := bx.BasicInfo(z)
+	b, err := bx.BasicInfo()
 	if err != nil {
 		log.Println(err)
 	}
@@ -118,7 +130,7 @@ func testJsp() {
 }
 
 func testJspIndex() {
-	info := wsm.BehinderInfo{
+	info := &wsm.BehinderInfo{
 		BaseShell: wsm.BaseShell{
 			Url:      JspIndexShellUrl,
 			Password: "rebeyond",
@@ -131,7 +143,10 @@ func testJspIndex() {
 			//Headers: map[string]string{"Content-type": "application/x-www-form-urlencoded"},
 
 		}}
-	bx := wsm.NewBehinder(info)
+	bx, err := wsm.NewBehinder(info)
+	if err != nil {
+		log.Println(err)
+	}
 	p := &behinder.PingParams{
 		// response 结果不加密测试
 		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: false},

