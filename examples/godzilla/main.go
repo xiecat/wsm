@@ -314,10 +314,27 @@ func testJspBs64() {
 		log.Println(err)
 	}
 	fmt.Printf("Echo : %#+v\n", echo.ToString())
-	fp := &godzilla.GetFiles{DirName: "C:/"}
-	getFile, err := g.OperationFile(fp)
+	gf := &godzilla.GetFiles{DirName: "C:/"}
+	getFile, err := g.OperationFile(gf)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("getFiles : \n", getFile.ToMap())
 
-	fmt.Println("File : ", getFile.ToMap())
+	sfa := &godzilla.SetFileAttr{
+		FileName: "C:/shells/godzilla.txt",
+		FileAttr: godzilla.FileTimeAttr,
+		// 创建时间 2022-07-08 21:04:01
+		Attr: "2012-07-08 21:04:01",
+	}
+	setFileAttr, err := g.OperationFile(sfa)
+
+	if err != nil {
+		log.Printf("%#+v\n", err)
+	}
+
+	fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
+
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
 	//fmt.Println("Info : ", basicInfo)

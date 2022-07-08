@@ -51,7 +51,7 @@ func (g *gResult) Parser() error {
 		}
 		g.Body = result
 	case FileOpt:
-		jsonStr, err := parserToJson(string(g.Raw))
+		jsonStr, err := parserFileOptToMap(string(g.Raw))
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ type fileInfo struct {
 	Perm         string `json:"perm"`
 }
 
-func parserToJson(raw string) (map[string]string, error) {
+func parserFileOptToMap(raw string) (map[string]string, error) {
 	var fileInfoList []string
 	result := make(map[string]string, 2)
 

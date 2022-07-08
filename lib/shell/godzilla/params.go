@@ -3,7 +3,9 @@ package godzilla
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type ExecParams struct {
@@ -79,7 +81,7 @@ func (d DownloadFile) SetDefaultAndCheckValue() error {
 
 type UploadFile struct {
 	FileName  string `json:"fileName"`
-	FileValue string `json:"fileValue"`
+	FileValue []byte `json:"fileValue"`
 }
 
 func (u UploadFile) SetDefaultAndCheckValue() error {
@@ -127,8 +129,8 @@ func (n NewFile) SetDefaultAndCheckValue() error {
 
 type BigFileUpload struct {
 	FileName     string `json:"fileName"`
-	FileContents string `json:"fileContents"`
-	Position     string `json:"position"`
+	FileContents []byte `json:"fileContents"`
+	Position     int    `json:"position"`
 }
 
 func (b BigFileUpload) SetDefaultAndCheckValue() error {
@@ -138,9 +140,8 @@ func (b BigFileUpload) SetDefaultAndCheckValue() error {
 
 type BigFileDownload struct {
 	FileName    string `json:"fileName"`
-	Position    string `json:"position"`
-	ReadByteNum string `json:"readByteNum" default:"read"`
-	Mode        string `json:"mode"`
+	Position    int    `json:"position"`
+	ReadByteNum int    `json:"readByteNum"`
 }
 
 func (b BigFileDownload) SetDefaultAndCheckValue() error {
@@ -150,7 +151,6 @@ func (b BigFileDownload) SetDefaultAndCheckValue() error {
 
 type GetFileSize struct {
 	FileName string `json:"fileName"`
-	Mode     string `json:"mode" default:"fileSize"`
 }
 
 func (g GetFileSize) SetDefaultAndCheckValue() error {
@@ -168,14 +168,32 @@ func (f FileRemoteDown) SetDefaultAndCheckValue() error {
 	panic("implement me")
 }
 
+type FileAttr string
+
+const (
+	FileBasicAttr FileAttr = "fileBasicAttr"
+	FileTimeAttr  FileAttr = "fileTimeAttr"
+)
+
 type SetFileAttr struct {
 	FileName string `json:"fileName"`
+	FileAttr FileAttr
 	Attr     string `json:"attr"`
 }
 
-func (s SetFileAttr) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+func (s *SetFileAttr) SetDefaultAndCheckValue() error {
+	if len(s.FileName) == 0 {
+		return errors.New("file name is empty")
+	}
+	if len(s.Attr) == 0 {
+		return errors.New("attr name is empty")
+	}
+	tt, err := time.Parse("2006-01-02 15:04:05", s.Attr)
+	if err != nil {
+		return err
+	}
+	s.Attr = strconv.FormatInt(tt.Unix(), 10)
+	return nil
 }
 
 //type FileOptParams struct {

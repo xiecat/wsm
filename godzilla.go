@@ -590,32 +590,6 @@ func (g *GodzillaInfo) screen() ([]byte, error) {
 	return nil, errors.New("response is empty")
 }
 
-func (g *GodzillaInfo) processParams(p shell.IParams) (map[string]string, error) {
-	//params := make(map[string]string, 2)
-	//var err error
-	//if p == nil {
-	//	switch i.(type) {
-	//	case *godzilla.ExecParams:
-	//		i.(*godzilla.ExecParams).SetDefaultAndCheckValue()
-	//		params["ExecParams"] = i.(*godzilla.ExecParams).ToCommand()
-	//	default:
-	//		return nil, errors.New(fmt.Sprintf("%v is undefined", i))
-	//	}
-	//} else {
-	err := p.SetDefaultAndCheckValue()
-	if err != nil {
-		return nil, err
-	}
-	params, err := utils.ToMapParams(p)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(params)
-	//}
-
-	return params, err
-}
-
 func (g *GodzillaInfo) Ping(p ...shell.IParams) (bool, error) {
 	return g.test()
 }
@@ -652,7 +626,7 @@ func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	var gres *gResult
+	var gRes *gResult
 	switch p.(type) {
 	case *godzilla.GetFiles:
 		filePath := p.(*godzilla.GetFiles).DirName
@@ -660,13 +634,161 @@ func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		gres = newGResult([]byte(res), FileOpt)
-		err = gres.Parser()
+		gRes = newGResult([]byte(res), FileOpt)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.NewDir:
+		dirName := p.(*godzilla.NewDir).DirName
+		res, err := g.newDir(dirName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.DownloadFile:
+		fileName := p.(*godzilla.DownloadFile).FileName
+		res, err := g.downloadFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult(res, Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.UploadFile:
+		targetName := p.(*godzilla.UploadFile).FileName
+		targetValue := p.(*godzilla.UploadFile).FileValue
+		res, err := g.uploadFile(targetName, targetValue)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.CopyFile:
+		srcFileName := p.(*godzilla.CopyFile).SrcFileName
+		destFileName := p.(*godzilla.CopyFile).DestFileName
+		res, err := g.copyFile(srcFileName, destFileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.MoveFile:
+		mf := p.(*godzilla.MoveFile)
+		srcFileName := mf.SrcFileName
+		destFileName := mf.DestFileName
+		res, err := g.moveFile(srcFileName, destFileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.DeleteFile:
+		fileName := p.(*godzilla.DeleteFile).FileName
+		res, err := g.deleteFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.NewFile:
+		fileName := p.(*godzilla.NewFile).FileName
+		res, err := g.newFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.BigFileUpload:
+		bfu := p.(*godzilla.BigFileUpload)
+		fileName := bfu.FileName
+		fileContents := bfu.FileContents
+		position := bfu.Position
+		res, err := g.bigFileUpload(fileName, position, fileContents)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(res), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.BigFileDownload:
+		bfd := p.(*godzilla.BigFileDownload)
+		fileName := bfd.FileName
+		position := bfd.Position
+		readByteNum := bfd.ReadByteNum
+		res, err := g.bigFileDownload(fileName, position, readByteNum)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult(res, Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.FileRemoteDown:
+		frd := p.(*godzilla.FileRemoteDown)
+		u := frd.Url
+		saveFile := frd.SaveFile
+		res, err := g.fileRemoteDown(u, saveFile)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.GetFileSize:
+		gf := p.(*godzilla.GetFileSize)
+		fileName := gf.FileName
+		res, err := g.getFileSize(fileName)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.Itoa(res)), Raw)
+		err = gRes.Parser()
+		if err != nil {
+			return nil, err
+		}
+	case *godzilla.SetFileAttr:
+		sfa := p.(*godzilla.SetFileAttr)
+		fileName := sfa.FileName
+		fileAttr := sfa.FileAttr
+		attr := sfa.Attr
+		res, err := g.setFileAttr(fileName, string(fileAttr), attr)
+		if err != nil {
+			return nil, err
+		}
+		gRes = newGResult([]byte(strconv.FormatBool(res)), Raw)
+		err = gRes.Parser()
 		if err != nil {
 			return nil, err
 		}
 	}
-	return gres, nil
+	return gRes, nil
 }
 func (g *GodzillaInfo) OperationDatabase(p shell.IParams) (shell.IResult, error) {
 	return nil, nil
