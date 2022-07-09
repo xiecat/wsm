@@ -475,21 +475,29 @@ func (g *GodzillaInfo) setFileAttr(file, fileType, fileAttr string) (bool, error
 	}
 }
 
-func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType, execSql string, dbPort int, options map[string]string) (string, error) {
+func (g *GodzillaInfo) execSql(params *godzilla.DBManagerParams) (string, error) {
 	parameter := newParameter()
-	parameter.AddString("dbType", dbType)
-	parameter.AddString("dbHost", dbHost)
-	parameter.AddString("dbPort", strconv.Itoa(dbPort))
-	parameter.AddString("dbUsername", dbUsername)
-	parameter.AddString("dbPassword", dbPassword)
-	parameter.AddString("execType", execType)
-	parameter.AddBytes("execSql", []byte(execSql))
-	if len(options) != 0 {
-		dbCharset := options["dbCharset"]
-		currentDb := options["currentDb"]
+	parameter.AddString("dbType", params.DBType)
+	parameter.AddString("dbHost", params.DBHost)
+	parameter.AddString("dbPort", strconv.Itoa(params.DBPort))
+	parameter.AddString("dbUsername", params.DBUsername)
+	parameter.AddString("dbPassword", params.DBPassword)
+	parameter.AddString("execType", params.ExecType)
+	enSql, err := g.encoding.CharsetEncode(params.ExecSql)
+	if err != nil {
+		return "", err
+	}
+	parameter.AddBytes("execSql", enSql)
+	if len(params.Option) != 0 {
+		dbCharset := params.Option["dbCharset"]
+		currentDb := params.Option["currentDb"]
 		if len(dbCharset) != 0 {
 			parameter.AddString("dbCharset", dbCharset)
-			parameter.AddBytes("execSql", []byte(execSql))
+			enSql, err := g.encoding.CharsetEncode(params.ExecSql)
+			if err != nil {
+				return "", err
+			}
+			parameter.AddBytes("execSql", enSql)
 		}
 		if len(currentDb) != 0 {
 			parameter.AddString("currentDb", currentDb)
@@ -499,7 +507,11 @@ func (g *GodzillaInfo) execSql(dbType, dbHost, dbUsername, dbPassword, execType,
 	if err != nil {
 		return "", err
 	}
-	return string(result), nil
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return "", err
+	}
+	return decode, nil
 }
 
 //func (g *GodzillaInfo) currentDir() string {
@@ -621,7 +633,7 @@ func (g *GodzillaInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
 	return newGResult([]byte(res), Raw), nil
 }
 
-func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
+func (g *GodzillaInfo) FileManagement(p shell.IParams) (shell.IResult, error) {
 	err := p.SetDefaultAndCheckValue()
 	if err != nil {
 		return nil, err
@@ -773,8 +785,8 @@ func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *godzilla.SetFileAttr:
-		sfa := p.(*godzilla.SetFileAttr)
+	case *godzilla.FixFileAttr:
+		sfa := p.(*godzilla.FixFileAttr)
 		fileName := sfa.FileName
 		fileAttr := sfa.FileAttr
 		attr := sfa.Attr
@@ -790,6 +802,18 @@ func (g *GodzillaInfo) OperationFile(p shell.IParams) (shell.IResult, error) {
 	}
 	return gRes, nil
 }
-func (g *GodzillaInfo) OperationDatabase(p shell.IParams) (shell.IResult, error) {
-	return nil, nil
+
+// DatabaseManagement 需要配合 JarLoad 插件加载数据库驱动
+func (g *GodzillaInfo) DatabaseManagement(p shell.IParams) (shell.IResult, error) {
+	dbmp := p.(*godzilla.DBManagerParams)
+	sql, err := g.execSql(dbmp)
+	if err != nil {
+		return nil, err
+	}
+	res := newGResult([]byte(sql), Raw)
+	err = res.Parser()
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

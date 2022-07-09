@@ -314,26 +314,40 @@ func testJspBs64() {
 		log.Println(err)
 	}
 	fmt.Printf("Echo : %#+v\n", echo.ToString())
-	gf := &godzilla.GetFiles{DirName: "C:/"}
-	getFile, err := g.OperationFile(gf)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println("getFiles : \n", getFile.ToMap())
+	//gf := &godzilla.GetFiles{DirName: "C:/"}
+	//getFile, err := g.FileManagement(gf)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Println("getFiles : \n", getFile.ToMap())
 
-	sfa := &godzilla.SetFileAttr{
-		FileName: "C:/shells/godzilla.txt",
-		FileAttr: godzilla.FileTimeAttr,
-		// 创建时间 2022-07-08 21:04:01
-		Attr: "2012-07-08 21:04:01",
-	}
-	setFileAttr, err := g.OperationFile(sfa)
+	//sfa := &godzilla.FixFileAttr{
+	//	FileName: "C:/shells/godzilla.txt",
+	//	FileAttr: godzilla.FileTimeAttr,
+	//	// 创建时间 2022-07-08 21:04:01
+	//	Attr: "2012-07-08 21:04:01",
+	//}
+	//setFileAttr, err := g.FileManagement(sfa)
+	//
+	//if err != nil {
+	//	log.Printf("%#+v\n", err)
+	//}
+	//
+	//fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
 
-	if err != nil {
-		log.Printf("%#+v\n", err)
+	db := &godzilla.DBManagerParams{
+		DBType:     "mysql",
+		DBHost:     "127.0.0.1",
+		DBPort:     3306,
+		DBUsername: "root",
+		DBPassword: "root",
+		ExecType:   "select",
+		ExecSql:    "SHOW DATABASES",
+		DBCharset:  godzilla.UTF8CharSet,
+		Option:     map[string]string{"dbCharset": godzilla.UTF8CharSet},
 	}
-
-	fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
+	dbInfo, err := g.DatabaseManagement(db)
+	fmt.Println("DatabaseManagement : \n", dbInfo.ToString())
 
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)

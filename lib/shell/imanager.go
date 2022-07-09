@@ -7,6 +7,6 @@ type IManager interface {
 	BasicInfo(p ...IParams) (IResult, error)
 	// CommandExec 命令执行
 	CommandExec(p IParams) (IResult, error)
-	OperationFile(p IParams) (IResult, error)
-	OperationDatabase(p IParams) (IResult, error)
+	FileManagement(p IParams) (IResult, error)
+	DatabaseManagement(p IParams) (IResult, error)
 }

@@ -3,6 +3,8 @@ package godzilla
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -32,23 +34,7 @@ func (e *ExecParams) SetDefaultAndCheckValue() error {
 	return nil
 }
 
-//type UseMode string
-//
-//const (
-//	NewFile         UseMode = "newFile"
-//	DeleteFile      UseMode = "deleteFile"
-//	GetFile         UseMode = "getFile"
-//	DownloadFile    UseMode = "downloadFile"
-//	UploadFile      UseMode = "uploadFile"
-//	MoveFile        UseMode = "moveFile"
-//	CopyFile        UseMode = "deleteFile"
-//	NewDir          UseMode = "newDir"
-//	BigFileUpload   UseMode = "bigFileUpload"
-//	BigFileDownload UseMode = "bigFileDownload"
-//	GetFileSize     UseMode = "getFileSize"
-//	FileRemoteDown  UseMode = "fileRemoteDown"
-//	SetFileAttr     UseMode = "setFileAttr"
-//)
+var fileNameEmptyError = errors.New("file name is empty")
 
 type GetFiles struct {
 	DirName string `json:"dirName"`
@@ -66,8 +52,10 @@ type NewDir struct {
 }
 
 func (n NewDir) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(n.DirName) == 0 {
+		return errors.New("dir name is empty")
+	}
+	return nil
 }
 
 type DownloadFile struct {
@@ -75,8 +63,10 @@ type DownloadFile struct {
 }
 
 func (d DownloadFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(d.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	return nil
 }
 
 type UploadFile struct {
@@ -85,8 +75,13 @@ type UploadFile struct {
 }
 
 func (u UploadFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(u.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	if len(u.FileValue) == 0 {
+		return errors.New("file content is empty")
+	}
+	return nil
 }
 
 type CopyFile struct {
@@ -95,8 +90,13 @@ type CopyFile struct {
 }
 
 func (c CopyFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(c.SrcFileName) == 0 {
+		return errors.New("src file name is empty")
+	}
+	if len(c.DestFileName) == 0 {
+		return errors.New("dest file name is empty")
+	}
+	return nil
 }
 
 type MoveFile struct {
@@ -105,8 +105,13 @@ type MoveFile struct {
 }
 
 func (m MoveFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(m.SrcFileName) == 0 {
+		return errors.New("src file name is empty")
+	}
+	if len(m.DestFileName) == 0 {
+		return errors.New("dest file name is empty")
+	}
+	return nil
 }
 
 type DeleteFile struct {
@@ -114,8 +119,10 @@ type DeleteFile struct {
 }
 
 func (d DeleteFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(d.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	return nil
 }
 
 type NewFile struct {
@@ -123,8 +130,10 @@ type NewFile struct {
 }
 
 func (n NewFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(n.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	return nil
 }
 
 type BigFileUpload struct {
@@ -134,8 +143,13 @@ type BigFileUpload struct {
 }
 
 func (b BigFileUpload) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(b.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	if len(b.FileContents) == 0 {
+		return errors.New("file content is empty")
+	}
+	return nil
 }
 
 type BigFileDownload struct {
@@ -145,27 +159,44 @@ type BigFileDownload struct {
 }
 
 func (b BigFileDownload) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(b.FileName) == 0 {
+		return fileNameEmptyError
+	}
+	return nil
 }
 
 type GetFileSize struct {
 	FileName string `json:"fileName"`
 }
 
-func (g GetFileSize) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+func (g *GetFileSize) SetDefaultAndCheckValue() error {
+	if len(g.FileName) == 0 {
+		return errors.New("file name is empty")
+	}
+	return nil
 }
 
+// FileRemoteDown 指定一个 url 让目标下载
 type FileRemoteDown struct {
-	Url      string `json:"url"`
+	// eg. https://github.com/xxx/1.exe
+	Url string `json:"url"`
+	// 文件在目标服务器上保存的路径
 	SaveFile string `json:"saveFile"`
 }
 
-func (f FileRemoteDown) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+func (f *FileRemoteDown) SetDefaultAndCheckValue() error {
+	if len(f.Url) == 0 {
+		return errors.New("url is empty")
+	}
+	u, err := url.Parse(f.Url)
+	if err != nil {
+		return err
+	}
+	f.Url = u.String()
+	if len(f.SaveFile) == 0 {
+		return errors.New("save file path is empty")
+	}
+	return nil
 }
 
 type FileAttr string
@@ -175,56 +206,52 @@ const (
 	FileTimeAttr  FileAttr = "fileTimeAttr"
 )
 
-type SetFileAttr struct {
+// FixFileAttr 修改文件时间戳、权限
+type FixFileAttr struct {
+	// 要修改的文件路径
 	FileName string `json:"fileName"`
+	// 修改时间戳还是权限
 	FileAttr FileAttr
-	Attr     string `json:"attr"`
+	// 如果选择修改时间戳，那么格式为 2006-01-02 15:04:05
+	// 如果选择修改权限，那么格式为 RWX
+	Attr string `json:"attr"`
 }
 
-func (s *SetFileAttr) SetDefaultAndCheckValue() error {
+func (s *FixFileAttr) SetDefaultAndCheckValue() error {
 	if len(s.FileName) == 0 {
 		return errors.New("file name is empty")
 	}
 	if len(s.Attr) == 0 {
 		return errors.New("attr name is empty")
 	}
-	tt, err := time.Parse("2006-01-02 15:04:05", s.Attr)
-	if err != nil {
-		return err
+	if s.FileAttr == FileTimeAttr {
+		ok, _ := regexp.MatchString(`^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2}$`, s.Attr)
+		if !ok {
+			return errors.New(fmt.Sprintf("%s Incorrect time format,eg. 2006-01-02 15:04:05", s.Attr))
+		}
+		tt, err := time.Parse("2006-01-02 15:04:05", s.Attr)
+		if err != nil {
+			return err
+		}
+		s.Attr = strconv.FormatInt(tt.Unix(), 10)
 	}
-	s.Attr = strconv.FormatInt(tt.Unix(), 10)
 	return nil
 }
 
-//type FileOptParams struct {
-//	//UseMode      UseMode `json:"useMode"`
-//	DirName      string `json:"dirName"`
-//	FileName     string `json:"fileName"`
-//	FileValue    string `json:"fileValue"`
-//	SrcFileName  string `json:"srcFileName"`
-//	DestFileName string `json:"destFileName"`
-//	FileContents string `json:"fileContents"`
-//	Position     string `json:"position"`
-//	ReadByteNum  string `json:"readByteNum"`
-//	Mode         string `json:"mode"`
-//	Url          string `json:"url"`
-//	SaveFile     string `json:"saveFile"`
-//	Attr         string `json:"attr"`
-//}
-//
-//func (f FileOptParams) SetDefaultAndCheckValue() error {
-//	//TODO implement me
-//	panic("implement me")
-//}
+type DBManagerParams struct {
+	DBType     string
+	DBHost     string
+	DBPort     int
+	DBUsername string
+	DBPassword string
+	ExecType   string
+	ExecSql    string
+	DBCharset  string
+	CurrentDB  string
+	Option     map[string]string
+}
 
-type SqlOptParams struct {
-	dbType     string
-	dbHost     string
-	dbPort     string
-	dbUsername string
-	dbPassword string
-	execType   string
-	execSql    string
-	dbCharset  string
-	currentDb  string
+func (D DBManagerParams) SetDefaultAndCheckValue() error {
+	//TODO implement me
+	panic("implement me")
 }

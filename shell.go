@@ -48,12 +48,12 @@ func (b BaseShell) CommandExec(p shell.IParams) (shell.IResult, error) {
 	panic("implement me")
 }
 
-func (b BaseShell) OperationFile(p shell.IParams) (shell.IResult, error) {
+func (b BaseShell) FileManagement(p shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b BaseShell) OperationDatabase(p shell.IParams) (shell.IResult, error) {
+func (b BaseShell) DatabaseManagement(p shell.IParams) (shell.IResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
