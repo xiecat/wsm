@@ -22,6 +22,9 @@ var GodzillaClassPayload []byte
 //go:embed godzilla/java/plugins/*.class
 var GodClassPluginsFiles embed.FS
 
+//go:embed godzilla/java/plugins/*.jar
+var GodJarPluginsFiles embed.FS
+
 //go:embed godzilla/php/payloadv4.php.txt
 var GodzillaPhpPayload []byte
 

@@ -5,6 +5,7 @@ import (
 	"github.com/go0p/wsm"
 	"github.com/go0p/wsm/lib/shell"
 	"github.com/go0p/wsm/lib/shell/godzilla"
+	"github.com/go0p/wsm/lib/shell/godzilla/plugins"
 	"log"
 )
 
@@ -334,6 +335,8 @@ func testJspBs64() {
 	//}
 	//
 	//fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
+
+	g.UsePlugins(plugins.JarLoader{})
 
 	db := &godzilla.DBManagerParams{
 		DBType:     "mysql",

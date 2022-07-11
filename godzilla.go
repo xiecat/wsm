@@ -84,10 +84,6 @@ func (g *GodzillaInfo) setHeaders() map[string]string {
 	return h
 }
 
-func (g *GodzillaInfo) Encodeing() {
-
-}
-
 func (g *GodzillaInfo) GetPayload() []byte {
 	var payload []byte
 	if g.Script == shell.JavaScript {
@@ -816,4 +812,10 @@ func (g *GodzillaInfo) DatabaseManagement(p shell.IParams) (shell.IResult, error
 		return nil, err
 	}
 	return res, nil
+}
+
+func (g *GodzillaInfo) UsePlugins(p godzilla.IPlugins) (shell.IResult, error) {
+	p.Inject()
+	p.Use()
+	return nil, nil
 }
