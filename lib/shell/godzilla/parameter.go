@@ -11,6 +11,13 @@ type Parameter struct {
 	Size    int
 }
 
+func NewParameter() *Parameter {
+	return &Parameter{
+		HashMap: make(map[string]interface{}, 2),
+		Size:    0,
+	}
+}
+
 func (p *Parameter) AddString(key, value string) {
 	p.addParameterString(key, value)
 }

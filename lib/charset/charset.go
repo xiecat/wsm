@@ -1,4 +1,4 @@
-package godzilla
+package charset
 
 import (
 	"github.com/gogs/chardet"

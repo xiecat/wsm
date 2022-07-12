@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/go0p/wsm"
+	"github.com/go0p/wsm/lib/charset"
 	"github.com/go0p/wsm/lib/shell"
 	"github.com/go0p/wsm/lib/shell/godzilla"
 	"github.com/go0p/wsm/lib/shell/godzilla/plugins"
@@ -55,7 +56,7 @@ func testPhpBs64() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.PHP_XOR_BASE64,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -86,7 +87,7 @@ func testPhpRaw() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.PHP_XOR_RAW,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -114,7 +115,7 @@ func testAspxBs64() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.CSHARP_AES_BASE64,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -142,7 +143,7 @@ func testAspxRaw() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.CSHARP_AES_RAW,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -170,7 +171,7 @@ func testAspBs64() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.ASP_XOR_BASE64,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -198,7 +199,7 @@ func testAspRaw() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.ASP_XOR_RAW,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -226,7 +227,7 @@ func testJspxBs64() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_BASE64,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -254,7 +255,7 @@ func testJspxRaw() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_RAW,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -282,7 +283,7 @@ func testJspBs64() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_BASE64,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {
@@ -335,8 +336,12 @@ func testJspBs64() {
 	//}
 	//
 	//fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
-
-	g.UsePlugins(plugins.JarLoader{})
+	//c, _ := payloads.GodJarPluginsFiles.ReadFile("godzilla/java/plugins/mysql.jar")
+	usePlugins, err := g.UsePlugins(plugins.NewJarDriverLoader(plugins.MysqlDriver))
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(usePlugins.ToString())
 
 	db := &godzilla.DBManagerParams{
 		DBType:     "mysql",
@@ -346,8 +351,8 @@ func testJspBs64() {
 		DBPassword: "root",
 		ExecType:   "select",
 		ExecSql:    "SHOW DATABASES",
-		DBCharset:  godzilla.UTF8CharSet,
-		Option:     map[string]string{"dbCharset": godzilla.UTF8CharSet},
+		DBCharset:  charset.UTF8CharSet,
+		CurrentDB:  "",
 	}
 	dbInfo, err := g.DatabaseManagement(db)
 	fmt.Println("DatabaseManagement : \n", dbInfo.ToString())
@@ -355,6 +360,11 @@ func testJspBs64() {
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)
 	//fmt.Println("Info : ", basicInfo)
+
+	//	[[{"name":"Id"},{"name":"string"},{"name":"raw"}],["1","è¿æ¯ä¸æ¡æµè¯æ°æ®-----godzilla","1233454354354"],["2","tttttttttttt","behinder"]]
+	//Id	string	raw
+	//1	ÕâÊÇÒ»Ìõ²âÊÔÊý¾Ý-----godzilla	1233454354354
+	//2	tttttttttttt	behinder
 }
 
 func testJspRaw() {
@@ -367,7 +377,7 @@ func testJspRaw() {
 		},
 		Key:      "key",
 		Crypto:   godzilla.JAVA_AES_RAW,
-		Encoding: godzilla.UTF8CharSet,
+		Encoding: charset.UTF8CharSet,
 	}
 	g, err := wsm.NewGodzillaInfo(info)
 	if err != nil {

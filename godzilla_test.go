@@ -1,6 +1,7 @@
 package wsm
 
 import (
+	"github.com/go0p/wsm/lib/charset"
 	"github.com/go0p/wsm/lib/shell"
 	"github.com/go0p/wsm/lib/shell/godzilla"
 	"testing"
@@ -26,7 +27,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 		secretKey       []byte
 		Crypto          godzilla.CrypticType
 		Encoding        string
-		encoding        godzilla.EncodingCharset
+		encoding        charset.EncodingCharset
 		ReqLeft         string
 		ReqRight        string
 		dynamicFuncName map[string]string
@@ -52,7 +53,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.ASP_XOR_BASE64,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -69,7 +70,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.ASP_XOR_RAW,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -86,7 +87,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.CSHARP_AES_BASE64,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -103,7 +104,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.CSHARP_AES_RAW,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -120,7 +121,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.JAVA_AES_BASE64,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -137,7 +138,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.JAVA_AES_RAW,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -154,7 +155,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.JAVA_AES_BASE64,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -171,7 +172,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.JAVA_AES_RAW,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -188,7 +189,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.PHP_XOR_BASE64,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,
@@ -205,7 +206,7 @@ func TestGodzillaInfo_Ping(t *testing.T) {
 				},
 				Key:      "key",
 				Crypto:   godzilla.PHP_XOR_RAW,
-				Encoding: godzilla.UTF8CharSet,
+				Encoding: charset.UTF8CharSet,
 			},
 			args:    args{p: nil},
 			want:    true,

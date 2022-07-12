@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/go0p/wsm/lib/charset"
 	"github.com/go0p/wsm/lib/dynamic"
 	"github.com/go0p/wsm/lib/gzip"
 	"github.com/go0p/wsm/lib/httpx"
@@ -23,7 +24,7 @@ type GodzillaInfo struct {
 	Crypto godzilla.CrypticType
 	// 字符编码
 	Encoding        string
-	encoding        godzilla.EncodingCharset
+	encoding        charset.EncodingCharset
 	ReqLeft         string
 	ReqRight        string
 	dynamicFuncName map[string]string
@@ -52,7 +53,7 @@ func NewGodzillaInfo(g *GodzillaInfo) (*GodzillaInfo, error) {
 	if len(g.Crypto) == 0 {
 		return nil, errors.New("未指定加密类型")
 	}
-	g.encoding = godzilla.EncodingCharset{}
+	g.encoding = charset.EncodingCharset{}
 	g.encoding.SetCharset(g.Encoding)
 	if g.Headers == nil {
 		g.Headers = make(map[string]string, 2)
@@ -186,10 +187,7 @@ func (g *GodzillaInfo) dynamicUpdateClassName(oldName string, classContent []byt
 }
 
 func newParameter() *godzilla.Parameter {
-	return &godzilla.Parameter{
-		HashMap: make(map[string]interface{}, 2),
-		Size:    0,
-	}
+	return godzilla.NewParameter()
 }
 
 // InjectPayload 第一次发送全部的 payload
@@ -484,20 +482,18 @@ func (g *GodzillaInfo) execSql(params *godzilla.DBManagerParams) (string, error)
 		return "", err
 	}
 	parameter.AddBytes("execSql", enSql)
-	if len(params.Option) != 0 {
-		dbCharset := params.Option["dbCharset"]
-		currentDb := params.Option["currentDb"]
-		if len(dbCharset) != 0 {
-			parameter.AddString("dbCharset", dbCharset)
-			enSql, err := g.encoding.CharsetEncode(params.ExecSql)
-			if err != nil {
-				return "", err
-			}
-			parameter.AddBytes("execSql", enSql)
+	dbCharset := params.DBCharset
+	currentDb := params.CurrentDB
+	if len(dbCharset) != 0 {
+		parameter.AddString("dbCharset", dbCharset)
+		enSql, err = g.encoding.CharsetEncode(params.ExecSql)
+		if err != nil {
+			return "", err
 		}
-		if len(currentDb) != 0 {
-			parameter.AddString("currentDb", currentDb)
-		}
+		parameter.AddBytes("execSql", enSql)
+	}
+	if len(currentDb) != 0 {
+		parameter.AddString("currentDb", currentDb)
 	}
 	result, err := g.EvalFunc("", "execSql", parameter)
 	if err != nil {
@@ -815,7 +811,27 @@ func (g *GodzillaInfo) DatabaseManagement(p shell.IParams) (shell.IResult, error
 }
 
 func (g *GodzillaInfo) UsePlugins(p godzilla.IPlugins) (shell.IResult, error) {
-	p.Inject()
-	p.Use()
-	return nil, nil
+	name, binCode, err := p.GetPluginName()
+	if err != nil {
+		return nil, err
+	}
+	ok, err := g.Include(name, binCode)
+	if err != nil {
+		return nil, err
+	}
+	if ok {
+		funcName, parameter := p.GetParams()
+		evalRes, err := g.EvalFunc(name, funcName, parameter)
+		if err != nil {
+			return nil, err
+		}
+		res := newGResult(evalRes, Raw)
+		err = res.Parser()
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	} else {
+		return nil, errors.New(fmt.Sprintf("load %s fail", name))
+	}
 }

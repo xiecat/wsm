@@ -1,6 +1,6 @@
 package godzilla
 
 type IPlugins interface {
-	Inject() error
-	Use() error
+	GetPluginName() (string, []byte, error)
+	GetParams() (string, *Parameter)
 }

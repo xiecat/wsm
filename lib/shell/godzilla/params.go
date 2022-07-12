@@ -248,7 +248,6 @@ type DBManagerParams struct {
 	ExecSql    string
 	DBCharset  string
 	CurrentDB  string
-	Option     map[string]string
 }
 
 func (D DBManagerParams) SetDefaultAndCheckValue() error {
