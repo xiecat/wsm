@@ -612,12 +612,15 @@ func (g *GodzillaInfo) BasicInfo(p ...shell.IParams) (shell.IResult, error) {
 }
 
 func (g *GodzillaInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
-	//params, err := g.processParams(p)
 	err := p.SetDefaultAndCheckValue()
 	if err != nil {
 		return nil, err
 	}
-	realCommand := p.(*godzilla.ExecParams).RealCommand
+	execParams, ok := p.(*godzilla.ExecParams)
+	if !ok {
+		return nil, errors.New("需要能断言为 godzilla.ExecParams 类型")
+	}
+	realCommand := execParams.RealCommand
 	res, err := g.execCommand(realCommand)
 	if err != nil {
 		return nil, err
@@ -798,11 +801,14 @@ func (g *GodzillaInfo) FileManagement(p shell.IParams) (shell.IResult, error) {
 // DatabaseManagement 需要配合 JarLoad 插件加载数据库驱动
 func (g *GodzillaInfo) DatabaseManagement(p shell.IParams) (shell.IResult, error) {
 	dbmp := p.(*godzilla.DBManagerParams)
+	if g.Script == shell.CsharpScript && dbmp.DBType != "sqlserver" {
+		return nil, errors.New("apsx shell only supports sqlserver type database")
+	}
 	sql, err := g.execSql(dbmp)
 	if err != nil {
 		return nil, err
 	}
-	res := newGResult([]byte(sql), Raw)
+	res := newGResult([]byte(sql), DatabaseOpt)
 	err = res.Parser()
 	if err != nil {
 		return nil, err

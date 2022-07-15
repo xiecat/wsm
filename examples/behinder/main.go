@@ -19,16 +19,16 @@ const (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	log.Println("Jsp Index")
-	testJspIndex()
+	//log.Println("Jsp Index")
+	//testJspIndex()
 	log.Println("Jsp")
 	testJsp()
-	log.Println("Aspx")
-	testAspx()
-	log.Println("Asp")
-	testAsp()
-	log.Println("Php")
-	testPhp()
+	//log.Println("Aspx")
+	//testAspx()
+	//log.Println("Asp")
+	//testAsp()
+	//log.Println("Php")
+	//testPhp()
 }
 
 func testPhp() {
@@ -107,26 +107,62 @@ func testJsp() {
 	if err != nil {
 		log.Println(err)
 	}
-	p := &behinder.PingParams{
-		// response 结果不加密测试
-		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-		Content:        "xxxxxxx",
-	}
-	i, err := bx.Ping(p)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(i)
-	//z := &behinder.BasicInfoParams{
+	//p := &behinder.PingParams{
+	//	// response 结果不加密测试
 	//	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
-	//	WhatEver:       "xxxxxxx",
+	//	Content:        "xxxxxxx",
 	//}
-	//b, err := bx.BasicInfo(z)
-	b, err := bx.BasicInfo()
+	//i, err := bx.Ping(p)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Println(i)
+	////z := &behinder.BasicInfoParams{
+	////	OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: true, NotEncrypt: true},
+	////	WhatEver:       "xxxxxxx",
+	////}
+	////b, err := bx.BasicInfo(z)
+	//b, err := bx.BasicInfo()
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Println(b.ToMap())
+	//
+	//e := &behinder.ExecParams{
+	//	OnlyJavaParams: behinder.OnlyJavaParams{},
+	//	Cmd:            "whoami",
+	//	Path:           "C:\\shells\\apache-tomcat-8.5.70\\bin",
+	//}
+	//exec, err := bx.CommandExec(e)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Println(exec.ToMap())
+
+	//f := &behinder.ListFiles{
+	//	Path: "C:/",
+	//}
+	//file, err := bx.FileManagement(f)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//fmt.Println(file.ToMap())
+
+	db := &behinder.DBManagerParams{
+		OnlyJavaParams: behinder.OnlyJavaParams{ForcePrint: false, NotEncrypt: true},
+		Type:           "mysql",
+		Host:           "127.0.0.1",
+		Port:           3306,
+		User:           "root",
+		Pass:           "root",
+		Database:       "godzilla",
+		Sql:            "SHOW DATABASES",
+	}
+	dbres, err := bx.DatabaseManagement(db)
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(b.ToMap())
+	fmt.Println(dbres.ToMap())
 }
 
 func testJspIndex() {
