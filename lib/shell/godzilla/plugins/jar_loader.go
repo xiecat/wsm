@@ -39,7 +39,7 @@ func NewJarDriverLoader(DBDriver DBJarDriver) *JarLoader {
 }
 
 func (j JarLoader) GetPluginName() (string, []byte, error) {
-	binCode, err := payloads.GodClassPluginsFiles.ReadFile("godzilla/java/plugins/JarLoader.class")
+	binCode, err := payloads.ReadAndDecrypt("godzilla/java/plugins/JarLoader.class")
 
 	if err != nil {
 		return "", nil, err
@@ -50,7 +50,7 @@ func (j JarLoader) GetPluginName() (string, []byte, error) {
 func (j JarLoader) GetParams() (string, *godzilla.Parameter) {
 	reqParameter := godzilla.NewParameter()
 	if len(j.DBDriver) != 0 {
-		j.JarFileContent, _ = payloads.GodJarPluginsFiles.ReadFile(string(j.DBDriver))
+		j.JarFileContent, _ = payloads.ReadAndDecrypt(string(j.DBDriver))
 	}
 	reqParameter.AddBytes("jarByteArray", j.JarFileContent)
 

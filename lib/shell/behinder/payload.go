@@ -73,7 +73,7 @@ func GetPayload(key []byte, className string, params map[string]string, types sh
 }
 
 func getParamedClass(clsName string, params map[string]string) ([]byte, error) {
-	payloadBytes, err := payloads.BehinderClassPayloads.ReadFile(fmt.Sprintf("behinder/java/%s.class", clsName))
+	payloadBytes, err := payloads.ReadAndDecrypt(fmt.Sprintf("behinder/java/en%s.class", clsName))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func keySet(m map[string]string) []string {
 
 func getParamedPhp(clsName string, params map[string]string) ([]byte, error) {
 	var code strings.Builder
-	payloadBytes, err := payloads.BehinderPhpPayloads.ReadFile(fmt.Sprintf("behinder/php/%s.php.txt", clsName))
+	payloadBytes, err := payloads.ReadAndDecrypt(fmt.Sprintf("behinder/php/en%s.php.txt", clsName))
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func getPhpParams(phpPayload []byte) []string {
 }
 
 func GetParamedAssembly(clsName string, params map[string]string) ([]byte, error) {
-	payloadBytes, err := payloads.BehinderCsharpPayloads.ReadFile(fmt.Sprintf("behinder/csharp/%s.dll", clsName))
+	payloadBytes, err := payloads.ReadAndDecrypt(fmt.Sprintf("behinder/csharp/en%s.dll", clsName))
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func GetParamedAssembly(clsName string, params map[string]string) ([]byte, error
 
 func GetParamedAsp(clsName string, params map[string]string) ([]byte, error) {
 	var code strings.Builder
-	payloadBytes, err := payloads.BehinderAspPayloads.ReadFile(fmt.Sprintf("behinder/asp/%s.asp.txt", clsName))
+	payloadBytes, err := payloads.ReadAndDecrypt(fmt.Sprintf("behinder/asp/en%s.asp.txt", clsName))
 	if err != nil {
 		return nil, err
 	}
