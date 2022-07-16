@@ -91,7 +91,7 @@ func (b *BehinderInfo) setParams(i interface{}, p shell.IParams) (map[string]str
 
 // processParams 只有 java 的 payload 需要这两个参数
 func (b *BehinderInfo) processParams(p map[string]string) {
-	if b.Script != shell.JavaScript {
+	if b.Script != shell.JavaScript && b.Script != shell.JspxScript {
 		delete(p, "forcePrint")
 		delete(p, "notEncrypt")
 	}

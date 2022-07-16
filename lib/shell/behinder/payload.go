@@ -15,7 +15,7 @@ import (
 func GetPayload(key []byte, className string, params map[string]string, types shell.ScriptType, encryptType int) ([]byte, error) {
 	var bincls []byte
 	var err error
-	if types == shell.JavaScript {
+	if types == shell.JavaScript || types == shell.JspxScript {
 		bincls, err = getParamedClass(className, params)
 		if err != nil {
 			return nil, err
@@ -78,7 +78,10 @@ func getParamedClass(clsName string, params map[string]string) ([]byte, error) {
 		return nil, err
 	}
 	for k, v := range params {
-		payloadBytes, _ = dynamic.ReplaceClassStrVar(payloadBytes, k, v)
+		payloadBytes, err = dynamic.ReplaceClassStrVar(payloadBytes, k, v)
+		if err != nil {
+			return nil, err
+		}
 	}
 	result := payloadBytes
 	if len(result) == 0 {

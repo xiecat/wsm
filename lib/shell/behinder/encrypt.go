@@ -10,7 +10,7 @@ import (
 func Encrypto(bs, key []byte, encryptType int, types shell.ScriptType) ([]byte, error) {
 	var result []byte
 	var err error
-	if types == shell.JavaScript {
+	if types == shell.JavaScript || types == shell.JspxScript {
 		result, err = encryptForJava(bs, key)
 	} else if types == shell.PhpScript {
 		result, err = encryptForPhp(bs, key, encryptType)
@@ -33,7 +33,7 @@ func Decrypto(raw, key []byte, types shell.ScriptType, notEncrypt string, encryp
 	} else {
 		targetBts = raw
 	}
-	if types == shell.JavaScript {
+	if types == shell.JavaScript || types == shell.JspxScript {
 		if notEncrypt != "true" {
 			result, err = decryptForJava(targetBts, key)
 		} else {

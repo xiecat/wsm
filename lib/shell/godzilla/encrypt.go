@@ -11,7 +11,7 @@ import (
 )
 
 func Encrypto(content, key []byte, pass string, cryption CrypticType, script shell.ScriptType) ([]byte, error) {
-	if script == shell.JavaScript {
+	if script == shell.JavaScript || script == shell.JspxScript {
 		if cryption == JAVA_AES_BASE64 {
 			en, err := encryptForJava(content, key)
 			if err != nil {
@@ -75,7 +75,7 @@ func Encrypto(content, key []byte, pass string, cryption CrypticType, script she
 }
 
 func Decrypto(content, key []byte, pass string, cryption CrypticType, script shell.ScriptType) ([]byte, error) {
-	if script == shell.JavaScript {
+	if script == shell.JavaScript || script == shell.JspxScript {
 		if cryption == JAVA_AES_BASE64 {
 			flag := utils.MD5(pass + string(key))
 			cont := regexp.MustCompile(`(?s)(?i)` + flag[0:16] + `(.*?)` + flag[16:]).FindStringSubmatch(string(content))

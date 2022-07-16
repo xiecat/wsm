@@ -87,7 +87,7 @@ func (g *GodzillaInfo) setHeaders() map[string]string {
 
 func (g *GodzillaInfo) GetPayload() []byte {
 	var payload []byte
-	if g.Script == shell.JavaScript {
+	if g.Script == shell.JavaScript || g.Script == shell.JspxScript {
 		payload = payloads.GodzillaClassPayload
 		// 原始类名被我改为 payloadv4 了
 		payload = g.dynamicUpdateClassName("payloadv4", payload)
@@ -111,7 +111,7 @@ func (g *GodzillaInfo) EvalFunc(className, funcName string, parameter *godzilla.
 	r1, r2 := utils.RandomRangeString(10, 100), utils.RandomRangeString(10, 100)
 	parameter.AddString(r1, r2)
 	if className != "" && len(strings.Trim(className, " ")) > 0 {
-		if g.Script == shell.JavaScript {
+		if g.Script == shell.JavaScript || g.Script == shell.JspxScript {
 			parameter.AddString("evalClassName", g.dynamicFuncName[className])
 		} else if g.Script == shell.PhpScript || g.Script == shell.AspScript {
 			parameter.AddString("codeName", className)
@@ -518,7 +518,7 @@ func (g *GodzillaInfo) execSql(params *godzilla.DBManagerParams) (string, error)
 // Include 远程 shell 加载插件
 func (g *GodzillaInfo) Include(codeName string, binCode []byte) (bool, error) {
 	parameter := newParameter()
-	if g.Script == shell.JavaScript {
+	if g.Script == shell.JavaScript || g.Script == shell.JspxScript {
 		binCode = g.dynamicUpdateClassName(codeName, binCode)
 		codeName = g.dynamicFuncName[codeName]
 		if codeName != "" {
