@@ -5,10 +5,11 @@ import (
 	"github.com/go0p/wsm/lib/utils"
 )
 
+// OnlyJavaParams 只针对 JavaScript 类型的参数
 type OnlyJavaParams struct {
 	// print 模式，java class 改 String 类型比较好改，所以用 bool 类型传递字符串
 	ForcePrint bool `json:"forcePrint,string"`
-	// 不采用加密
+	// 对结果不进行加密
 	NotEncrypt bool `json:"notEncrypt,string"`
 }
 
@@ -67,8 +68,10 @@ type GetTimeStamp struct {
 }
 
 func (g GetTimeStamp) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(g.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 // UpdateTimeStamp 更新时间戳
@@ -81,18 +84,29 @@ type UpdateTimeStamp struct {
 }
 
 func (u UpdateTimeStamp) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(u.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	if len(u.CreateTimeStamp) == 0 {
+		return errors.New("createTimeStamp is empty")
+	}
+	if len(u.AccessTimeStamp) == 0 {
+		return errors.New("accessTimeStamp is empty")
+	}
+	return nil
 }
 
+// DeleteFile 删除指定文件
 type DeleteFile struct {
 	OnlyJavaParams
 	Path string `json:"path"`
 }
 
 func (d DeleteFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(d.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type ShowFile struct {
@@ -102,8 +116,10 @@ type ShowFile struct {
 }
 
 func (s ShowFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(s.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type RenameFile struct {
@@ -113,8 +129,10 @@ type RenameFile struct {
 }
 
 func (r RenameFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(r.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type CreateFile struct {
@@ -124,8 +142,10 @@ type CreateFile struct {
 }
 
 func (c CreateFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(c.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type CreateDirectory struct {
@@ -135,8 +155,10 @@ type CreateDirectory struct {
 }
 
 func (c CreateDirectory) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(c.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type DownloadFile struct {
@@ -145,8 +167,10 @@ type DownloadFile struct {
 }
 
 func (d DownloadFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(d.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type UploadFile struct {
@@ -158,10 +182,16 @@ type UploadFile struct {
 }
 
 func (u UploadFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(u.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	if len(u.Content) == 0 {
+		return errors.New("content is empty")
+	}
+	return nil
 }
 
+// AppendFile 对指定文件进行内容追加
 type AppendFile struct {
 	OnlyJavaParams
 	Path    string `json:"path"`
@@ -169,8 +199,10 @@ type AppendFile struct {
 }
 
 func (a AppendFile) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+	if len(a.Path) == 0 {
+		return errors.New("path is empty")
+	}
+	return nil
 }
 
 type DBManagerParams struct {
@@ -184,7 +216,18 @@ type DBManagerParams struct {
 	Sql      string `json:"sql"`
 }
 
-func (D DBManagerParams) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+func (d DBManagerParams) SetDefaultAndCheckValue() error {
+	if len(d.Type) == 0 {
+		return errors.New("db type is empty")
+	}
+	if len(d.Host) == 0 {
+		return errors.New("db host is empty")
+	}
+	if d.Port == 0 {
+		return errors.New("db port is error")
+	}
+	if len(d.Sql) == 0 {
+		return errors.New("db sql is empty")
+	}
+	return nil
 }

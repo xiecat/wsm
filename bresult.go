@@ -21,10 +21,10 @@ func (b *bResult) Parser() error {
 		return err
 	}
 	for k, v := range result {
-		value, err := base64.StdEncoding.DecodeString(v)
-		if err != nil {
-			return err
-		}
+		value, _ := base64.StdEncoding.DecodeString(v)
+		//if err != nil {
+		//	result[k] = string(value)
+		//}
 		result[k] = string(value)
 	}
 	b.Body = result

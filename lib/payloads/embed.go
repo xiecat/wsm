@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go0p/wsm/lib/encrypt"
+	"github.com/go0p/wsm/lib/gzip"
 	"github.com/go0p/wsm/lib/utils"
 	"io/ioutil"
 	"os"
@@ -54,10 +55,17 @@ var bypassKey []byte
 
 func init() {
 	bypassKey = utils.SecretKey("wsm-bypass")
-	GodzillaAspPayload, _ = encrypt.AESCBCDecrypt(GodzillaAspPayload, bypassKey, bypassKey)
-	GodzillaCsharpPayload, _ = encrypt.AESCBCDecrypt(GodzillaCsharpPayload, bypassKey, bypassKey)
-	GodzillaClassPayload, _ = encrypt.AESCBCDecrypt(GodzillaClassPayload, bypassKey, bypassKey)
-	GodzillaPhpPayload, _ = encrypt.AESCBCDecrypt(GodzillaPhpPayload, bypassKey, bypassKey)
+	aesDeCode, _ := encrypt.AESCBCDecrypt(GodzillaAspPayload, bypassKey, bypassKey)
+	GodzillaAspPayload, _ = gzip.DeCompress(aesDeCode)
+
+	aesDeCode, _ = encrypt.AESCBCDecrypt(GodzillaCsharpPayload, bypassKey, bypassKey)
+	GodzillaCsharpPayload, _ = gzip.DeCompress(aesDeCode)
+
+	aesDeCode, _ = encrypt.AESCBCDecrypt(GodzillaClassPayload, bypassKey, bypassKey)
+	GodzillaClassPayload, _ = gzip.DeCompress(aesDeCode)
+
+	aesDeCode, _ = encrypt.AESCBCDecrypt(GodzillaPhpPayload, bypassKey, bypassKey)
+	GodzillaPhpPayload, _ = gzip.DeCompress(aesDeCode)
 }
 
 func ReadAndDecrypt(payload string) ([]byte, error) {
@@ -97,23 +105,40 @@ func ReadAndDecrypt(payload string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return encrypt.AESCBCDecrypt(enCode, bypassKey, bypassKey)
+	gDeCode, err := encrypt.AESCBCDecrypt(enCode, bypassKey, bypassKey)
+	if err != nil {
+		return nil, err
+	}
+	return gzip.DeCompress(gDeCode)
 }
 
-func en() {
-	//root := "F:\\gocode\\wsm\\lib\\payloads\\behinder\\php"
-	root := "F:\\gocode\\wsm\\lib\\payloads\\godzilla\\php"
+func getAllFile(pathname string) error {
 	key := utils.SecretKey("wsm-bypass")
-	fmt.Println(key)
-	files, _ := ioutil.ReadDir(root)
-	for _, f := range files {
-		content := read(root + "\\" + f.Name())
-		enContent, err := encrypt.AESCBCEncrypt(content, key, key)
-		if err != nil {
-			panic(err)
+	rd, err := ioutil.ReadDir(pathname)
+	for _, fi := range rd {
+		if fi.IsDir() {
+			fmt.Printf("[%s]\n", pathname+"\\"+fi.Name())
+			err = getAllFile(pathname + "\\" + fi.Name() + "\\")
+			if err != nil {
+				return err
+			}
+		} else {
+			content := read(pathname + "\\" + fi.Name())
+
+			fmt.Println("gzip ", pathname+"\\"+fi.Name())
+			gen, err := gzip.Compress(content)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("aes ", pathname+"\\"+fi.Name())
+			enContent, err := encrypt.AESCBCEncrypt(gen, key, key)
+			if err != nil {
+				panic(err)
+			}
+			write(enContent, pathname+"\\en"+fi.Name())
 		}
-		write(enContent, root+"\\en"+f.Name())
 	}
+	return err
 }
 
 func read(name string) []byte {

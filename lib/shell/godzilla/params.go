@@ -250,7 +250,18 @@ type DBManagerParams struct {
 	CurrentDB  string
 }
 
-func (D DBManagerParams) SetDefaultAndCheckValue() error {
-	//TODO implement me
-	panic("implement me")
+func (d DBManagerParams) SetDefaultAndCheckValue() error {
+	if len(d.DBType) == 0 {
+		return errors.New("db type is empty")
+	}
+	if len(d.DBHost) == 0 {
+		return errors.New("db host is empty")
+	}
+	if d.DBPort == 0 {
+		return errors.New("db port is error")
+	}
+	if len(d.ExecSql) == 0 {
+		return errors.New("db sql is empty")
+	}
+	return nil
 }

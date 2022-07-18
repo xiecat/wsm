@@ -8,9 +8,9 @@ import (
 type DBJarDriver string
 
 const (
-	MysqlDriver     DBJarDriver = "godzilla/java/plugins/mysql.jar"
-	SqlJdbc41Driver DBJarDriver = "godzilla/java/plugins/sqljdbc41.jar"
-	Ojdbc5Driver    DBJarDriver = "godzilla/java/plugins/ojdbc5.jar"
+	MysqlDriver     DBJarDriver = "godzilla/java/plugins/enmysql.jar"
+	SqlJdbc41Driver DBJarDriver = "godzilla/java/plugins/ensqljdbc41.jar"
+	Ojdbc5Driver    DBJarDriver = "godzilla/java/plugins/enojdbc5.jar"
 )
 
 type JarLoader struct {
@@ -39,7 +39,7 @@ func NewJarDriverLoader(DBDriver DBJarDriver) *JarLoader {
 }
 
 func (j JarLoader) GetPluginName() (string, []byte, error) {
-	binCode, err := payloads.ReadAndDecrypt("godzilla/java/plugins/JarLoader.class")
+	binCode, err := payloads.ReadAndDecrypt("godzilla/java/plugins/enJarLoader.class")
 
 	if err != nil {
 		return "", nil, err

@@ -37,6 +37,7 @@ func (g *gResult) Parser() error {
 	case Raw:
 		result := make(map[string]string, 1)
 		result["raw"] = string(g.Raw)
+		result["status"] = "ok"
 		g.Body = result
 	case BasicInfo:
 		rawList := strings.Split(string(g.Raw), "\n")
@@ -95,7 +96,7 @@ func parserFileOptToMap(raw string) (map[string]string, error) {
 	if strings.Trim(rawList[0], " ") != "ok" {
 		return nil, errors.New(fmt.Sprintf("目标返回异常,无法正常格式化数据 : [%s]", raw))
 	}
-	result["msg"] = rawList[0]
+	result["status"] = rawList[0]
 	result["currentDir"] = rawList[1]
 	for i := 2; i < len(rawList); i++ {
 		var fi fileInfo
@@ -129,7 +130,7 @@ func parserDatabaseOptToMap(raw string) (map[string]string, error) {
 	if strings.Trim(rawList[0], " ") != "ok" {
 		return nil, errors.New(fmt.Sprintf("目标返回异常,无法正常格式化数据 : [%s]", raw))
 	}
-	result["msg"] = rawList[0]
+	result["status"] = rawList[0]
 	titles := strings.Split(rawList[1], "\t")
 	var ss []string
 	for _, title := range titles {

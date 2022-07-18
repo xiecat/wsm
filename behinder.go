@@ -248,7 +248,6 @@ func (b *BehinderInfo) FileManagement(p shell.IParams) (shell.IResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(params)
 	b.processParams(params)
 	data, err := behinder.GetPayload(b.secretKey, "FileOperationGo", params, b.Script, b.encryptMode)
 	if err != nil {

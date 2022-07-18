@@ -141,7 +141,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) ([]byte, error) {
 		}
 		return deData, nil
 	} else {
-		gzipData, err := gzip.GzipCompress(payload)
+		gzipData, err := gzip.Compress(payload)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (g *GodzillaInfo) sendPayload(payload []byte) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		res, err := gzip.GzipDeCompress(deData)
+		res, err := gzip.DeCompress(deData)
 		if err != nil {
 			return nil, err
 		}
@@ -625,7 +625,12 @@ func (g *GodzillaInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newGResult([]byte(res), Raw), nil
+	nr := newGResult([]byte(res), Raw)
+	err = nr.Parser()
+	if err != nil {
+		return nil, err
+	}
+	return nr, nil
 }
 
 func (g *GodzillaInfo) FileManagement(p shell.IParams) (shell.IResult, error) {

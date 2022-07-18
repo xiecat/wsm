@@ -1,7 +1,13 @@
 package payloads
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_en(t *testing.T) {
-	en()
+	root := "F:\\gocode\\wsm\\lib\\payloads"
+	err := getAllFile(root)
+	if err != nil {
+		return
+	}
 }

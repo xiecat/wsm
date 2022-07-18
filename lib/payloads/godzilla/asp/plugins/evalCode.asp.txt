@@ -1,1 +1,0 @@
-ExecuteGlobal(getParameterValue("plugin_eval_code"))

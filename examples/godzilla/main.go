@@ -25,25 +25,25 @@ const (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	//log.Println("Jsp")
-	//testJspBs64()
-	//testJspRaw()
-	//
-	//log.Println("Jspx")
-	//testJspxBs64()
-	//testJspxRaw()
-	//
-	//log.Println("Aspx")
-	//testAspxBs64()
-	//testAspxRaw()
-	//
-	//log.Println("Asp")
-	//testAspBs64()
-	//testAspRaw()
+	log.Println("Jsp")
+	testJspBs64()
+	testJspRaw()
+
+	log.Println("Jspx")
+	testJspxBs64()
+	testJspxRaw()
+
+	log.Println("Aspx")
+	testAspxBs64()
+	testAspxRaw()
+
+	log.Println("Asp")
+	testAspBs64()
+	testAspRaw()
 	//
 	log.Println("Php")
 	testPhpBs64()
-	//testPhpRaw()
+	testPhpRaw()
 }
 
 func testPhpBs64() {

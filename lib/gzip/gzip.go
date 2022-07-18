@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-func GzipCompress(src []byte) ([]byte, error) {
+func Compress(src []byte) ([]byte, error) {
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	if _, err := gz.Write(src); err != nil {
@@ -21,7 +21,7 @@ func GzipCompress(src []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func GzipDeCompress(ret []byte) ([]byte, error) {
+func DeCompress(ret []byte) ([]byte, error) {
 	var reader *gzip.Reader
 	var err error
 	reader, err = gzip.NewReader(bytes.NewBuffer(ret))
