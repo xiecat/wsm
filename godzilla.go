@@ -237,11 +237,11 @@ func (g *GodzillaInfo) getBasicsInfo() ([]byte, error) {
 // 命令执行，这个地方的传参处理好复杂啊，我真的不行了,栓Q =_=!
 func (g *GodzillaInfo) execCommand(commandStr string) (string, error) {
 	parameter := newParameter()
-	// 这个 cmdLine 参数多半是为了兼容 godzilla v3 ?
 	cl, err := g.encoding.CharsetEncode(commandStr)
 	if err != nil {
 		return "", err
 	}
+	// 这个 cmdLine 参数多半是为了兼容 godzilla v3 ?
 	parameter.AddBytes("cmdLine", cl)
 	commandArgs := godzilla.SplitArgs(commandStr, 10000, false)
 	for i := 0; i < len(commandArgs); i++ {
@@ -296,116 +296,187 @@ func (g *GodzillaInfo) getFile(filePath string) (string, error) {
 
 func (g *GodzillaInfo) downloadFile(fileName string) ([]byte, error) {
 	parameter := newParameter()
-	parameter.AddBytes("fileName", []byte(fileName))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return nil, err
+	}
+	parameter.AddBytes("fileName", enfileName)
 	result, err := g.EvalFunc("", "readFile", parameter)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(decode), nil
 }
 
 func (g *GodzillaInfo) uploadFile(fileName string, data []byte) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("fileName", []byte(fileName))
-	parameter.AddBytes("fileValue", data)
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("fileName", enfileName)
+	enData, err := g.encoding.CharsetEncode(string(data))
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("fileValue", enData)
 	result, err := g.EvalFunc("", "uploadFile", parameter)
 	if err != nil {
 		return false, err
 	}
-	stateString := string(result)
-	if "ok" == stateString {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(stateString)
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) copyFile(fileName, newFile string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("srcFileName", []byte(fileName))
-	parameter.AddBytes("destFileName", []byte(newFile))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("srcFileName", enfileName)
+	enNewFile, err := g.encoding.CharsetEncode(newFile)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("destFileName", enNewFile)
 	result, err := g.EvalFunc("", "copyFile", parameter)
 	if err != nil {
 		return false, err
 	}
-	stateString := string(result)
-	if "ok" == stateString {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(stateString)
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) deleteFile(fileName string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("fileName", []byte(fileName))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("fileName", enfileName)
 	result, err := g.EvalFunc("", "deleteFile", parameter)
 	if err != nil {
 		return false, err
 	}
-	stateString := string(result)
-	if "ok" == stateString {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(stateString)
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) newFile(fileName string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("fileName", []byte(fileName))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("fileName", enfileName)
 	result, err := g.EvalFunc("", "newFile", parameter)
 	if err != nil {
 		return false, err
 	}
-	stateString := string(result)
-	if "ok" == stateString {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(stateString)
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) moveFile(fileName, newFile string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("srcFileName", []byte(fileName))
-	parameter.AddBytes("destFileName", []byte(newFile))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("srcFileName", enfileName)
+	enNewFile, err := g.encoding.CharsetEncode(newFile)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("destFileName", enNewFile)
 	result, err := g.EvalFunc("", "moveFile", parameter)
 	if err != nil {
 		return false, err
 	}
-	if "ok" == string(result) {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(string(result))
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) newDir(fileName string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("dirName", []byte(fileName))
+	enfileName, err := g.encoding.CharsetEncode(fileName)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("dirName", enfileName)
 	result, err := g.EvalFunc("", "newDir", parameter)
 	if err != nil {
 		return false, err
 	}
-	stateString := string(result)
-	if "ok" == stateString {
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(stateString)
+		return false, errors.New(decode)
 	}
 }
 
 func (g *GodzillaInfo) bigFileUpload(fileName string, position int, content []byte) (string, error) {
 	parameter := newParameter()
-	parameter.AddBytes("fileContents", content)
+	enContent, err := g.encoding.CharsetEncode(string(content))
+	if err != nil {
+		return "", err
+	}
+	parameter.AddBytes("fileContents", enContent)
 	parameter.AddString("fileName", fileName)
 	parameter.AddString("position", strconv.Itoa(position))
 	result, err := g.EvalFunc("", "bigFileUpload", parameter)
 	if err != nil {
 		return "", err
 	}
-	return string(result), nil
+	decode, err := g.encoding.CharsetDecode(result)
+	if err != nil {
+		return "", err
+	}
+	return decode, nil
 }
 
 func (g *GodzillaInfo) bigFileDownload(fileName string, position, readByteNum int) ([]byte, error) {
@@ -422,17 +493,28 @@ func (g *GodzillaInfo) bigFileDownload(fileName string, position, readByteNum in
 }
 func (g *GodzillaInfo) fileRemoteDown(url, saveFile string) (bool, error) {
 	parameter := newParameter()
-	parameter.AddBytes("url", []byte(url))
-	parameter.AddBytes("saveFile", []byte(saveFile))
+	enUrl, err := g.encoding.CharsetEncode(url)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("url", enUrl)
+	enSaveFile, err := g.encoding.CharsetEncode(saveFile)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("saveFile", enSaveFile)
 	res, err := g.EvalFunc("", "fileRemoteDown", parameter)
 	if err != nil {
 		return false, err
 	}
-	result := string(res)
-	if "ok" == result {
+	decode, err := g.encoding.CharsetDecode(res)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(result)
+		return false, errors.New(decode)
 	}
 }
 
@@ -455,17 +537,24 @@ func (g *GodzillaInfo) getFileSize(fileName string) (int, error) {
 func (g *GodzillaInfo) setFileAttr(file, fileType, fileAttr string) (bool, error) {
 	parameter := newParameter()
 	parameter.AddString("type", fileType)
-	parameter.AddBytes("fileName", []byte(file))
+	enfileName, err := g.encoding.CharsetEncode(file)
+	if err != nil {
+		return false, err
+	}
+	parameter.AddBytes("fileName", enfileName)
 	parameter.AddString("attr", fileAttr)
 	res, err := g.EvalFunc("", "setFileAttr", parameter)
 	if err != nil {
 		return false, err
 	}
-	result := string(res)
-	if "ok" == (result) {
+	decode, err := g.encoding.CharsetDecode(res)
+	if err != nil {
+		return false, err
+	}
+	if "ok" == decode {
 		return true, nil
 	} else {
-		return false, errors.New(result)
+		return false, errors.New(decode)
 	}
 }
 
@@ -618,7 +707,7 @@ func (g *GodzillaInfo) CommandExec(p shell.IParams) (shell.IResult, error) {
 	}
 	execParams, ok := p.(*godzilla.ExecParams)
 	if !ok {
-		return nil, errors.New("需要能断言为 godzilla.ExecParams 类型")
+		return nil, errors.New("需要 godzilla.ExecParams 类型")
 	}
 	realCommand := execParams.RealCommand
 	res, err := g.execCommand(realCommand)
