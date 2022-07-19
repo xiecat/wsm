@@ -103,9 +103,13 @@ func main() {
 
 更多例子可以看 [**examples**](https://github.com/Go0p/wsm/tree/main/examples)
 
+#### 流量解密
+
+支持流量解密
+
 #### 说明
 
-**payload 进行了 gzip 压缩后再 aes 加密，这样做是为了拉取该库时，不被杀软报毒**
+*payload 进行了 gzip 压缩后再 aes 加密，这样做是为了拉取该库时，不被杀软报毒*
 
 #### 感谢
 
