@@ -1,6 +1,8 @@
 # wsm
 
-通过 go 直接管理您的哥斯拉或冰蝎 webshell 的库
+有时候不希望  PoC/Exp 止步于 getshell，还想着自动化进行某些操作，因此有了这个库。通过 wsm 直接管理您的哥斯拉和冰蝎 webshell
+
+## 功能列表
 
 #### 哥斯拉
 
@@ -20,18 +22,18 @@
 | aspx      | AES            | 存活验证、基本信息、命令执行、文件、数据库操作 |
 | php       | XOR、AES       | 存活验证、基本信息、命令执行、文件、数据库操作 |
 
-#### 例子
+## 例子
 
-冰蝎
+##### 冰蝎
 
 ```go
 package main
 
 import (
 	"fmt"
-	"github.com/go0p/wsm"
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/behinder"
+	"github.com/xiecat/wsm"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/behinder"
 	"log"
 )
 
@@ -64,10 +66,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/go0p/wsm"
-	"github.com/go0p/wsm/lib/charset"
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/godzilla"
+	"github.com/xiecat/wsm"
+	"github.com/xiecat/wsm/lib/charset"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/godzilla"
 	"log"
 )
 
@@ -101,17 +103,19 @@ func main() {
 }
 ```
 
-更多例子可以看 [**examples**](https://github.com/Go0p/wsm/tree/main/examples)
+更多例子可以查看  [**examples**](https://github.com/xiecat/wsm/tree/main/examples)
 
-#### 流量解密
+## 流量解密
 
 支持流量解密
 
-#### 说明
+[**examples**](https://github.com/xiecat/wsm/tree/main/examples/decrypt_packets)
 
-*payload 进行了 gzip 压缩后再 aes 加密，这样做是为了拉取该库时，不被杀软报毒*
+## 说明
 
-#### 感谢
+*[payloads](https://github.com/xiecat/wsm/tree/main/lib/payloads)  通过静态资源的方式使用，同时对原始的 payload文件进行了 gzip 压缩后再 aes 加密，这样做是为了拉取该库时，不被杀软报毒*
+
+## 感谢
 
 [Behinder](https://github.com/rebeyond/Behinder)
 
@@ -120,3 +124,7 @@ func main() {
 [As-Exploits](https://github.com/yzddmr6/As-Exploits)
 
 [每篇文章](https://yzddmr6.com/)
+
+## 注意事项
+
+本库仅供合法的渗透测试以及爱好者参考学习，请勿用于非法用途，否则自行承担相关责任。

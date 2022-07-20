@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/go0p/wsm"
-	"github.com/go0p/wsm/lib/charset"
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/godzilla"
-	"github.com/go0p/wsm/lib/shell/godzilla/plugins"
+	"github.com/xiecat/wsm"
+	"github.com/xiecat/wsm/lib/charset"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/godzilla"
+	"github.com/xiecat/wsm/lib/shell/godzilla/plugins"
 	"log"
 )
 

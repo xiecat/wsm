@@ -2,9 +2,9 @@ package httpx
 
 import (
 	"bytes"
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/godzilla"
 	"github.com/pkg/errors"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/godzilla"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package behinder
 
 import (
 	"errors"
-	"github.com/go0p/wsm/lib/utils"
+	"github.com/xiecat/wsm/lib/utils"
 )
 
 // OnlyJavaParams 只针对 JavaScript 类型的参数

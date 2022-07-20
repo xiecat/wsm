@@ -1,8 +1,8 @@
 package wsm
 
 import (
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/behinder"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/behinder"
 	"testing"
 )
 

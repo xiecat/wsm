@@ -2,7 +2,7 @@ package godzilla
 
 import (
 	"bytes"
-	"github.com/go0p/wsm/lib/dynamic"
+	"github.com/xiecat/wsm/lib/dynamic"
 	"strings"
 )
 
@@ -46,6 +46,14 @@ func (p *Parameter) Serialize() []byte {
 	}
 	return outputStream.Bytes()
 }
+
+//func (p *Parameter) UnSerialize(parameterByte []byte) *Parameter {
+//	par := NewParameter()
+//	for _, b := range parameterByte {
+//
+//	}
+//	return par
+//}
 
 func SplitArgs(input string, maxParts int, removeAllEscapeSequences bool) []string {
 	r := []rune(strings.Trim(input, " "))

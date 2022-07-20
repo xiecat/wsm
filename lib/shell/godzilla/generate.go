@@ -1,7 +1,7 @@
 package godzilla
 
 import (
-	"github.com/go0p/wsm/lib/utils"
+	"github.com/xiecat/wsm/lib/utils"
 	"strings"
 )
 

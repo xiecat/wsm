@@ -4,11 +4,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/go0p/wsm/lib/dynamic"
-	"github.com/go0p/wsm/lib/httpx"
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/shell/behinder"
-	"github.com/go0p/wsm/lib/utils"
+	"github.com/xiecat/wsm/lib/dynamic"
+	"github.com/xiecat/wsm/lib/httpx"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/shell/behinder"
+	"github.com/xiecat/wsm/lib/utils"
 	"io/ioutil"
 )
 

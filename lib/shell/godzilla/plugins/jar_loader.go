@@ -1,8 +1,8 @@
 package plugins
 
 import (
-	"github.com/go0p/wsm/lib/payloads"
-	"github.com/go0p/wsm/lib/shell/godzilla"
+	"github.com/xiecat/wsm/lib/payloads"
+	"github.com/xiecat/wsm/lib/shell/godzilla"
 )
 
 type DBJarDriver string

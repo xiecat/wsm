@@ -1,8 +1,8 @@
 package behinder
 
 import (
-	"github.com/go0p/wsm/lib/shell"
-	"github.com/go0p/wsm/lib/utils"
+	"github.com/xiecat/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/utils"
 	"strings"
 )
 

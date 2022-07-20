@@ -2,7 +2,7 @@ package wsm
 
 import (
 	"encoding/base64"
-	"github.com/go0p/wsm/lib/utils"
+	"github.com/xiecat/wsm/lib/utils"
 )
 
 type bResult struct {

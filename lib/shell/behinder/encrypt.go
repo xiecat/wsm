@@ -3,8 +3,8 @@ package behinder
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/go0p/wsm/lib/encrypt"
-	"github.com/go0p/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/encrypt"
+	"github.com/xiecat/wsm/lib/shell"
 )
 
 func Encrypto(bs, key []byte, encryptType int, types shell.ScriptType) ([]byte, error) {

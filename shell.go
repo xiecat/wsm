@@ -2,8 +2,8 @@ package wsm
 
 import (
 	"errors"
-	"github.com/go0p/wsm/lib/httpx"
-	"github.com/go0p/wsm/lib/shell"
+	"github.com/xiecat/wsm/lib/httpx"
+	"github.com/xiecat/wsm/lib/shell"
 )
 
 type BaseShell struct {
